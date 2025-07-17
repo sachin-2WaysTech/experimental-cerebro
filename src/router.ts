@@ -18,7 +18,11 @@ const router = createBrowserRouter([
       },
       {
         path: "flows",
-        Component: React.lazy(() => import('./pages/flow-editor/FlowEditor')),
+        Component: React.lazy(() => import('./pages/flows/WebFlow')),
+      },
+      {
+        path: "flows/:flowId",
+         Component: React.lazy(() => import('./pages/flow-editor/FlowEditor'))
       }
     ]
   }

@@ -1,18 +1,18 @@
-import { useEffect } from "react"
-import { Outlet } from "react-router-dom"
+import { useEffect } from "react";
+import { Outlet } from "react-router-dom";
 import { useNodesStore } from "./stores/nodes_store";
 
 function App() {
-  const getNodes = useNodesStore(state => state.getNodes)
+  const getNodes = useNodesStore((state) => state.getNodes);
   useEffect(() => {
-    getNodes()
+    getNodes();
   }, [getNodes]);
 
   return (
-    <div className="min-h-screen" >
+    <div className="min-h-screen">
       <Outlet />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

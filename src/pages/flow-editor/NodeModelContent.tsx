@@ -1,10 +1,13 @@
-import React, { type FC } from 'react';
-import * as Icons from 'lucide-react';
-import { type NodeType } from '../../service/nodeService';
-import { useNodesStore } from '@/stores/nodes_store';
+import React, { type FC } from "react";
+// import * as Icons from "lucide-react";
+import { type NodeType } from "../../service/nodeService";
+import { useNodesStore } from "@/stores/nodes_store";
 
 export interface NodesSidebarProps {
-  onNodeDragStart: (event: React.DragEvent<HTMLDivElement>, nodeType: NodeType) => void;
+  onNodeDragStart: (
+    event: React.DragEvent<HTMLDivElement>,
+    nodeType: NodeType
+  ) => void;
   onNodeDblClick: (nodeType: NodeType) => void;
 }
 
@@ -15,25 +18,28 @@ interface NodeModelContentProps extends NodesSidebarProps {
 const NodeModelContent: FC<NodeModelContentProps> = ({
   onNodeDragStart,
   onNodeDblClick,
-  isOnlyInput = false
+  isOnlyInput = false,
 }) => {
-  const nodes = useNodesStore(state => state.nodes);
+  const nodes = useNodesStore((state) => state.nodes);
 
-  const getIcon = (iconName: string) => {
-    const iconKey = iconName
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join('');
+  // const getIcon = (iconName: string) => {
+  //   const iconKey = iconName
+  //     .split("-")
+  //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+  //     .join("");
 
-    const IconsMap = Icons as unknown as Record<string, React.ComponentType<{ size?: number; className?: string }>>;
-    return IconsMap[iconKey] || Icons.Circle;
-  };
+  //   const IconsMap = Icons as unknown as Record<
+  //     string,
+  //     React.ComponentType<{ size?: number; className?: string }>
+  //   >;
+  //   return IconsMap[iconKey] || Icons.Circle;
+  // };
 
   const getListofNodes = () => {
     if (isOnlyInput) {
-      return nodes.filter(node => node.inputs?.length > 0);
+      return nodes.filter((node) => node.inputs?.length > 0);
     }
-    return nodes
+    return nodes;
   };
 
   return (
@@ -42,7 +48,7 @@ const NodeModelContent: FC<NodeModelContentProps> = ({
         <div className="border-b border-gray-800 last:border-b-0">
           <div className="grid grid-cols-2 gap-2">
             {getListofNodes().map((nodeType) => {
-              const NodeIcon = getIcon(nodeType.icon);
+              // const NodeIcon = getIcon(nodeType.icon);
               return (
                 <div
                   key={nodeType.name}
@@ -56,7 +62,7 @@ const NodeModelContent: FC<NodeModelContentProps> = ({
                       className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: nodeType.icon_color }}
                     >
-                      <NodeIcon size={14} className="text-white" />
+                      {/* <NodeIcon size={14} className="text-white" /> */}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-sm text-white truncate">
@@ -74,7 +80,7 @@ const NodeModelContent: FC<NodeModelContentProps> = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default NodeModelContent;
