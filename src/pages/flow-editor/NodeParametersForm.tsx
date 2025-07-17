@@ -191,24 +191,26 @@ const NodeParametersForm: React.FC<NodeParametersFormProps> = ({ node, onSave, o
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
         {node.nodeType.parameters.map(param => (
-          <div key={param.name} className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              {param.display_name}
-              {param.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
+          visibleFields.has(param.name) && (
+            <div key={param.name} className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {param.display_name}
+                {param.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
 
-            {renderField(param)}
+              {renderField(param)}
 
-            {param.description && param.type !== 'notice' && (
-              <p className="text-xs text-gray-500">{param.description}</p>
-            )}
+              {param.description && param.type !== 'notice' && (
+                <p className="text-xs text-gray-500">{param.description}</p>
+              )}
 
-            {errors[param.name] && (
-              <p className="text-xs text-red-500">
-                {param.required ? `${param.display_name} is required` : 'Invalid value'}
-              </p>
-            )}
-          </div>
+              {errors[param.name] && (
+                <p className="text-xs text-red-500">
+                  {param.required ? `${param.display_name} is required` : 'Invalid value'}
+                </p>
+              )}
+            </div>
+          )
         ))}
       </div>
 
