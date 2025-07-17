@@ -15,7 +15,7 @@ function WebFlow() {
 
   const navigate = useNavigate();
 
-  console.log(workflows, "workflows");
+  console.log("WebFlow component rendered:", { workflows: workflows.length, isLoading, error });
 
   // Load workflows on component mount
   useEffect(() => {
@@ -35,7 +35,7 @@ function WebFlow() {
     const uniqueId = `workflow_${workflows.length}`;
 
     // Navigate to the flow editor with the unique ID
-    navigate(`/flows/${uniqueId}`);
+    navigate(`/flow/${uniqueId}`);
   };
 
   const formatDate = (dateString: string) => {
