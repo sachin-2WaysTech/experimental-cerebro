@@ -32,9 +32,7 @@ function WebFlow() {
 
   const handleCreateNewWorkflow = () => {
     // Generate a unique ID for the new workflow
-    const uniqueId = `workflow_${Date.now()}_${Math.random()
-      .toString(36)
-      .substr(2, 9)}`;
+    const uniqueId = `workflow_${workflows.length}`;
 
     // Navigate to the flow editor with the unique ID
     navigate(`/flows/${uniqueId}`);
