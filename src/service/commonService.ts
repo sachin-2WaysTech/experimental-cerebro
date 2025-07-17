@@ -1,6 +1,6 @@
 import { privateClient } from "@/utils/privateClient";
 import type { NodeType } from "./nodeService";
-import type { Workflow } from "@/stores/workflow_store";
+import type {  WorkflowResponse } from "@/stores/workflow_store";
 
 export async function getNodeTypes(): Promise<NodeType[]> {
   try {
@@ -18,7 +18,7 @@ export async function getNodeTypes(): Promise<NodeType[]> {
   }
 }
 
-export async function getAllWorkflow(): Promise<Workflow[]> {
+export async function getAllWorkflow(): Promise<WorkflowResponse> {
   try {
     const response = await privateClient.get('/workflows/');
     const { data, status } = response
@@ -26,11 +26,11 @@ export async function getAllWorkflow(): Promise<Workflow[]> {
     if (status) {
       return data
     } else {
-      return []
+      return { workflows: [], total: 0, page: 1, size: 100 } as WorkflowResponse; // Default empty response
     }
   } catch (error) {
     console.error('Error fetching node types:', error);
-    return [];
+    return { workflows: [], total: 0, page: 1, size: 100 } as WorkflowResponse; // Default empty response
   }
 }
 export async function createWorkflow(body: Record<string, unknown>): Promise<unknown> {

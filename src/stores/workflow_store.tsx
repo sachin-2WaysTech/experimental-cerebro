@@ -2,6 +2,13 @@ import { getAllWorkflow } from "@/service/commonService";
 import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
 
+export interface WorkflowResponse {
+  workflows: Workflow[];
+  total: number;
+  page: number;
+  size: number;
+}
+
 interface WorkflowTag {
   id: number;
   name: string;
@@ -67,9 +74,9 @@ export const useWorkflowStore = create<WorkflowStoreState>()(
 
           set({ isLoading: true, error: null });
           try {
-            const response = (await getAllWorkflow()) as any;
+            const response = (await getAllWorkflow()) as WorkflowResponse;
             set({ workflows: response?.workflows, isLoading: false });
-            return response;
+            return response.workflows;
           } catch (error: unknown) {
             const errorMessage =
               error instanceof Error

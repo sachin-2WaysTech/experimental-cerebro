@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useWorkflowStore } from "@/stores/workflow_store";
-import { createWorkflow } from "@/service/commonService";
+import { useNavigate } from "react-router-dom";
 import { Plus, Calendar, Tag, Play, Edit, Trash2 } from "lucide-react";
 
 function WebFlow() {
@@ -13,21 +13,9 @@ function WebFlow() {
     clearError,
   } = useWorkflowStore();
 
-  console.log(workflows, "workflows");
+  const navigate = useNavigate();
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    tags: "",
-    is_active: true,
-    status: "draft",
-    version_name: "Initial Version",
-    environment: "production",
-    trigger: "webhook",
-    webhook_url: "",
-  });
+  console.log(workflows, "workflows");
 
   // Load workflows on component mount
   useEffect(() => {
@@ -42,72 +30,14 @@ function WebFlow() {
     }
   };
 
-  const handleCreateWorkflow = async () => {
-    if (!formData.name.trim()) {
-      alert("Please enter a workflow name");
-      return;
-    }
+  const handleCreateNewWorkflow = () => {
+    // Generate a unique ID for the new workflow
+    const uniqueId = `workflow_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
 
-    setIsCreating(true);
-    try {
-      // Parse tags into array of IDs (for now using dummy IDs 1,2,3)
-      const tagIds = formData.tags ? [1, 2, 3] : [];
-
-      const workflowBody = {
-        description:
-          formData.description ||
-          "Automated workflow for onboarding new customers",
-        initial_data: {
-          environment: formData.environment,
-          trigger: formData.trigger,
-        },
-        is_active: formData.is_active,
-        name: formData.name,
-        status: formData.status,
-        tag_ids: tagIds,
-        version_name: formData.version_name,
-        work_flow: {
-          connections: [],
-          nodes: [
-            {
-              config: {
-                webhook_url: formData.webhook_url || "",
-              },
-              id: "start",
-              position: [100, 100],
-              type: "trigger",
-            },
-          ],
-          start_node: "wait_1",
-          version_name: formData.version_name,
-        },
-      };
-
-      const response = await createWorkflow(workflowBody);
-      console.log("Workflow creation response:", response);
-
-      // Reset form and close modal
-      setFormData({
-        name: "",
-        description: "",
-        tags: "",
-        is_active: true,
-        status: "draft",
-        version_name: "Initial Version",
-        environment: "production",
-        trigger: "webhook",
-        webhook_url: "",
-      });
-      setShowAddModal(false);
-
-      // Refresh workflows list
-      getAllWorkflows();
-    } catch (error) {
-      console.error("Failed to create workflow:", error);
-      alert("Failed to create workflow. Please try again.");
-    } finally {
-      setIsCreating(false);
-    }
+    // Navigate to the flow editor with the unique ID
+    navigate(`/flows/${uniqueId}`);
   };
 
   const formatDate = (dateString: string) => {
@@ -170,7 +100,7 @@ function WebFlow() {
             </p>
           </div>
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={handleCreateNewWorkflow}
             className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg"
           >
             <Plus size={20} />
@@ -204,7 +134,7 @@ function WebFlow() {
               Create your first workflow to get started with automation
             </p>
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={handleCreateNewWorkflow}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Create First Workflow
@@ -315,172 +245,6 @@ function WebFlow() {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-
-        {/* Add Workflow Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <h2 className="text-xl font-bold mb-4">Create New Workflow</h2>
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleCreateWorkflow();
-                }}
-                className="space-y-4"
-              >
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Workflow Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter workflow name"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Describe your workflow"
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tags (comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.tags}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tags: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., automation, sales, marketing"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Environment
-                    </label>
-                    <select
-                      value={formData.environment}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          environment: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="production">Production</option>
-                      <option value="staging">Staging</option>
-                      <option value="development">Development</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Trigger Type
-                    </label>
-                    <select
-                      value={formData.trigger}
-                      onChange={(e) =>
-                        setFormData({ ...formData, trigger: e.target.value })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="webhook">Webhook</option>
-                      <option value="schedule">Schedule</option>
-                      <option value="manual">Manual</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Webhook URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.webhook_url}
-                    onChange={(e) =>
-                      setFormData({ ...formData, webhook_url: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="https://example.com/webhook"
-                  />
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="is_active"
-                    checked={formData.is_active}
-                    onChange={(e) =>
-                      setFormData({ ...formData, is_active: e.target.checked })
-                    }
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <label
-                    htmlFor="is_active"
-                    className="ml-2 text-sm text-gray-700"
-                  >
-                    Set as active workflow
-                  </label>
-                </div>
-
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAddModal(false);
-                      setFormData({
-                        name: "",
-                        description: "",
-                        tags: "",
-                        is_active: true,
-                        status: "draft",
-                        version_name: "Initial Version",
-                        environment: "production",
-                        trigger: "webhook",
-                        webhook_url: "",
-                      });
-                    }}
-                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-                    disabled={isCreating}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isCreating || !formData.name.trim()}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isCreating ? "Creating..." : "Create Workflow"}
-                  </button>
-                </div>
-              </form>
-            </div>
           </div>
         )}
       </div>
