@@ -21,8 +21,8 @@ const NodeModelContent: FC<NodeModelContentProps> = ({
 
   const getIcon = (iconName: string) => {
     const iconKey = iconName
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      ?.split('-')
+      ?.map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join('');
 
     const IconsMap = Icons as unknown as Record<string, React.ComponentType<{ size?: number; className?: string }>>;
