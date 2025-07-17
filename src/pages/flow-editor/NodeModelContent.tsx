@@ -9,6 +9,7 @@ export interface NodesSidebarProps {
     nodeType: NodeType
   ) => void;
   onNodeDblClick: (nodeType: NodeType) => void;
+  onTestWorkflow?: () => void;
 }
 
 interface NodeModelContentProps extends NodesSidebarProps {
@@ -24,8 +25,8 @@ const NodeModelContent: FC<NodeModelContentProps> = ({
 
   const getIcon = (iconName: string) => {
     const iconKey = iconName
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      ?.split("-")
+      ?.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join("");
 
     const IconsMap = Icons as unknown as Record<

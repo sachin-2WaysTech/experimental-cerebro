@@ -411,6 +411,8 @@ const WorkflowEditorInner: React.FC = () => {
       <WorkFlowBottomBar
         onNodeDragStart={onNodeDragStart}
         onNodeDblClick={handleBottomBarNodeDblClick}
+        nodes={nodes}
+        edges={edges}
       />
     </div>
   );
