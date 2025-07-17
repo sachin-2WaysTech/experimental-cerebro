@@ -6,6 +6,7 @@ import { useNodesStore } from '@/stores/nodes_store';
 export interface NodesSidebarProps {
   onNodeDragStart: (event: React.DragEvent<HTMLDivElement>, nodeType: NodeType) => void;
   onNodeDblClick: (nodeType: NodeType) => void;
+  onTestWorkflow?: () => void;
 }
 
 interface NodeModelContentProps extends NodesSidebarProps {

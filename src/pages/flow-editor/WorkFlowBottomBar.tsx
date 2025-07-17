@@ -2,16 +2,148 @@ import Modal from "@/components/Modal";
 import { Ellipsis, History, Plus } from "lucide-react"
 import { useState, type FC } from "react"
 import NodeModelContent, { type NodesSidebarProps } from "./NodeModelContent";
+import { privateClient } from "@/utils/privateClient";
+import type { Node, Edge } from '@xyflow/react';
+import type { NodeData } from '../../service/nodeService';
 
 
 type TabsType = "editor" | "execution"
 
-const WorkFlowBottomBar: FC<NodesSidebarProps> = ({
+interface WorkFlowBottomBarProps extends NodesSidebarProps {
+  nodes?: Node<NodeData & Record<string, unknown>>[];
+  edges?: Edge[];
+}
+
+const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
   onNodeDragStart,
-  onNodeDblClick
+  onNodeDblClick,
+  nodes = [],
+  edges = []
 }) => {
   const [tabs, setTabs] = useState<TabsType>("editor");
-  const [showModal, setShowModal] = useState(false)
+  const [showModal, setShowModal] = useState(false);
+  const [isTestingWorkflow, setIsTestingWorkflow] = useState(false);
+
+  // Function to format workflow data for API
+  const formatWorkflowData = () => {
+    if (nodes.length === 0) {
+      alert('No nodes found in the workflow. Please add some nodes first.');
+      return null;
+    }
+
+    // Find the first node as start node (you can modify this logic as needed)
+    const startNode = nodes[0];
+    
+    // Format nodes according to API specification
+    const formattedNodes: Record<string, any> = {};
+    
+    nodes.forEach((node) => {
+      const nodeData = node.data;
+      
+      // Extract credentials from parameters if they exist
+      const credentials: Record<string, any> = {};
+      if (nodeData.nodeType.credentials && nodeData.nodeType.credentials.length > 0) {
+        nodeData.nodeType.credentials.forEach((credentialDef) => {
+          const credentialValue = nodeData.parameters?.[credentialDef.name];
+          if (credentialValue) {
+            credentials[credentialDef.name] = credentialValue;
+          }
+        });
+      }
+
+      // Extract parameters (excluding credentials)
+      const parameters: Record<string, any> = {};
+      if (nodeData.parameters) {
+        Object.entries(nodeData.parameters).forEach(([key, value]) => {
+          // Skip credential fields as they're handled separately
+          const isCredential = nodeData.nodeType.credentials?.some(cred => cred.name === key);
+          if (!isCredential && value !== undefined && value !== null && value !== '') {
+            parameters[key] = value;
+          }
+        });
+      }
+
+      formattedNodes[nodeData.id] = {
+        name: nodeData.id,
+        type: nodeData.type,
+        display_name: nodeData.nodeType.display_name,
+        description: nodeData.nodeType.description,
+        version: 1.0,
+        position: [Math.round(node.position.x), Math.round(node.position.y)],
+        credentials: Object.keys(credentials).length > 0 ? credentials : {},
+        parameters: parameters
+      };
+    });
+
+    // Format connections from edges
+    const connections: Record<string, any> = {};
+    edges.forEach((edge) => {
+      if (!connections[edge.source]) {
+        connections[edge.source] = {};
+      }
+      
+      const outputHandle = 'main';
+      if (!connections[edge.source][outputHandle]) {
+        connections[edge.source][outputHandle] = [];
+      }
+      
+
+      // Add target node to the connection array
+      if (!connections[edge.source][outputHandle].some((conn: any) => conn.includes(edge.target))) {
+        connections[edge.source][outputHandle].push([edge.target]);
+      } else {
+        // If connection already exists, add to existing array
+        const existingConnection = connections[edge.source][outputHandle].find((conn: any) => Array.isArray(conn));
+        if (existingConnection && !existingConnection.includes(edge.target)) {
+          existingConnection.push(edge.target);
+        }
+      }
+    });
+
+    return {
+      name: "Test Workflow",
+      description: "Test workflow execution from editor",
+      is_active: true,
+      status: "published",
+      tag_ids: [],
+      version_name: "v0.1",
+      work_flow: {
+        work_flow_id: null,
+        start_node: startNode.data.id,
+        nodes: formattedNodes,
+        connections: connections
+      }
+    };
+  };
+
+  // Function to test workflow
+  const handleTestWorkflow = async () => {
+    const workflowData = formatWorkflowData();
+    if (!workflowData) return;
+
+    setIsTestingWorkflow(true);
+    
+    try {
+      console.log('Testing workflow with data:', JSON.stringify(workflowData, null, 2));
+      
+      const response = await privateClient.post('/workflows/execute/test', workflowData);
+      
+      console.log('API Response:', response.data);
+      
+      if (response.data?.status || response.status === 200) {
+        alert('Workflow test initiated successfully!');
+        console.log('Test response:', response.data);
+      } else {
+        alert('Failed to start workflow test: ' + (response.data?.message || 'Unknown error'));
+      }
+    } catch (error: any) {
+      console.error('Error testing workflow:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error occurred';
+      alert('Error testing workflow: ' + errorMessage);
+    } finally {
+      setIsTestingWorkflow(false);
+    }
+  };
 
   return (
     <>
@@ -48,7 +180,15 @@ const WorkFlowBottomBar: FC<NodesSidebarProps> = ({
             </button>
           </div>
           <div className="border-l px-5 border-black/30">
-            <button onClick={() => { setTabs("editor") }} className={`rounded-[10px] bg-[#B72D26] py-2 px-3 text-sm font-semibold text-center text-white `}>Test workflow</button>
+            <button 
+              onClick={handleTestWorkflow} 
+              disabled={isTestingWorkflow}
+              className={`rounded-[10px] py-2 px-3 text-sm font-semibold text-center text-white ${
+                isTestingWorkflow ? 'bg-gray-500 cursor-not-allowed' : 'bg-[#B72D26] hover:bg-[#A01E18]'
+              }`}
+            >
+              {isTestingWorkflow ? 'Testing...' : 'Test workflow'}
+            </button>
           </div>
         </div>
       </div>
