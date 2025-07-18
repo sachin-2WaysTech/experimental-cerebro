@@ -5,7 +5,7 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware";
 
 interface NodesStore {
   nodes: NodeType[];
-  getNodes: () => Promise<NodeType[]>
+  getNodes: () => Promise<NodeType[]>;
 }
 
 export const useNodesStore = create<NodesStore>()(
@@ -16,15 +16,16 @@ export const useNodesStore = create<NodesStore>()(
         getNodes: async () => {
           const currentNode = get().nodes;
           if (currentNode.length > 0) {
-            return currentNode
+            return currentNode;
           }
 
           const response = await getNodeTypes();
+
           set({
             nodes: response,
           });
           return response;
-        }
+        },
       }),
       {
         name: "nodes-storage",
@@ -33,4 +34,4 @@ export const useNodesStore = create<NodesStore>()(
     ),
     { name: "nodes-Store" }
   )
-);   
+);

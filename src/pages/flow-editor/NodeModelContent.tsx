@@ -1,11 +1,15 @@
-import React, { type FC } from 'react';
-import * as Icons from 'lucide-react';
-import { type NodeType } from '../../service/nodeService';
-import { useNodesStore } from '@/stores/nodes_store';
+import React, { type FC } from "react";
+import * as Icons from "lucide-react";
+import { type NodeType } from "../../service/nodeService";
+import { useNodesStore } from "@/stores/nodes_store";
 
 export interface NodesSidebarProps {
-  onNodeDragStart: (event: React.DragEvent<HTMLDivElement>, nodeType: NodeType) => void;
+  onNodeDragStart: (
+    event: React.DragEvent<HTMLDivElement>,
+    nodeType: NodeType
+  ) => void;
   onNodeDblClick: (nodeType: NodeType) => void;
+  onTestWorkflow?: () => void;
 }
 
 interface NodeModelContentProps extends NodesSidebarProps {
@@ -15,25 +19,28 @@ interface NodeModelContentProps extends NodesSidebarProps {
 const NodeModelContent: FC<NodeModelContentProps> = ({
   onNodeDragStart,
   onNodeDblClick,
-  isOnlyInput = false
+  isOnlyInput = false,
 }) => {
-  const nodes = useNodesStore(state => state.nodes);
+  const nodes = useNodesStore((state) => state.nodes);
 
   const getIcon = (iconName: string) => {
     const iconKey = iconName
-      ?.split('-')
-      ?.map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join('');
+      ?.split("-")
+      ?.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join("");
 
-    const IconsMap = Icons as unknown as Record<string, React.ComponentType<{ size?: number; className?: string }>>;
+    const IconsMap = Icons as unknown as Record<
+      string,
+      React.ComponentType<{ size?: number; className?: string }>
+    >;
     return IconsMap[iconKey] || Icons.Circle;
   };
 
   const getListofNodes = () => {
     if (isOnlyInput) {
-      return nodes.filter(node => node.inputs?.length > 0);
+      return nodes.filter((node) => node.inputs?.length > 0);
     }
-    return nodes
+    return nodes;
   };
 
   return (
@@ -42,7 +49,9 @@ const NodeModelContent: FC<NodeModelContentProps> = ({
         <div className="border-b border-gray-800 last:border-b-0">
           <div className="grid grid-cols-2 gap-2">
             {getListofNodes().map((nodeType) => {
-              const NodeIcon = getIcon(nodeType.icon);
+              const NodeIcon = nodeType.icon
+                ? getIcon(nodeType.icon)
+                : Icons.Circle;
               return (
                 <div
                   key={nodeType.name}
@@ -74,7 +83,7 @@ const NodeModelContent: FC<NodeModelContentProps> = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default NodeModelContent;
