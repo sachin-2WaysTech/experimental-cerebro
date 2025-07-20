@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function Home() {
   console.log("Home component rendered");
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
       <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">

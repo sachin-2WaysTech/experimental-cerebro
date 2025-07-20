@@ -15,7 +15,11 @@ function WebFlow() {
 
   const navigate = useNavigate();
 
-  console.log("WebFlow component rendered:", { workflows: workflows.length, isLoading, error });
+  console.log("WebFlow component rendered:", {
+    workflows: workflows.length,
+    isLoading,
+    error,
+  });
 
   // Load workflows on component mount
   useEffect(() => {

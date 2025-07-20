@@ -1,14 +1,14 @@
-import React, { Suspense } from 'react';
-import { createBrowserRouter } from 'react-router';
-import { LoadingSpinner } from './components/LoadingSpinner';
-import { ProtectedWrapper } from './components/ProtectedWrapper';
+import React, { Suspense } from "react";
+import { createBrowserRouter } from "react-router";
+import { LoadingSpinner } from "./components/LoadingSpinner";
+import { ProtectedWrapper } from "./components/ProtectedWrapper";
 
-const Home = React.lazy(() => import('./pages/Home'));
-const Login = React.lazy(() => import('./pages/auth/Login'));
-const Overview = React.lazy(() => import('./pages/overview/Overview'));
-const WebFlow = React.lazy(() => import('./pages/flows/WebFlow'));
-const FlowEditor = React.lazy(() => import('./pages/flow-editor/FlowEditor'));
-const RootLayout = React.lazy(() => import('./components/RootLayout'));
+const Home = React.lazy(() => import("./pages/Home"));
+const Login = React.lazy(() => import("./pages/auth/Login"));
+const Overview = React.lazy(() => import("./pages/overview/Overview"));
+const WebFlow = React.lazy(() => import("./pages/flows/WebFlow"));
+const FlowEditor = React.lazy(() => import("./pages/flow-editor/FlowEditor"));
+const RootLayout = React.lazy(() => import("./components/RootLayout"));
 
 const router = createBrowserRouter([
   {
@@ -58,9 +58,9 @@ const router = createBrowserRouter([
             <FlowEditor />
           </ProtectedWrapper>
         ),
-      }
-    ]
-  }
-])
+      },
+    ],
+  },
+]);
 
 export default router;

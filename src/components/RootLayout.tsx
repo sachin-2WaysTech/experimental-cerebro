@@ -6,7 +6,8 @@ const RootLayout: React.FC = () => {
   const location = useLocation();
 
   // Don't show header on login page and flow editor pages
-  const showHeader = location.pathname !== "/login" && !location.pathname.startsWith("/flow/");
+  const showHeader =
+    location.pathname !== "/login" && !location.pathname.startsWith("/flow/");
 
   return (
     <div className="min-h-screen">
