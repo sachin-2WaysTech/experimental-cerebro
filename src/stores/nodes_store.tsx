@@ -46,6 +46,7 @@ interface CredentialType {
 
 interface NodesStore {
   nodes: NodeType[];
+  isLoading: boolean;
   getNodes: () => Promise<NodeType[]>;
 }
 
@@ -54,18 +55,34 @@ export const useNodesStore = create<NodesStore>()(
     persist(
       (set, get) => ({
         nodes: [],
+        isLoading: false,
         getNodes: async () => {
           const currentNode = get().nodes;
+          const { isLoading } = get();
+          
+          // Return cached nodes if already loaded
           if (currentNode.length > 0) {
             return currentNode;
           }
+          
+          // Prevent multiple simultaneous calls
+          if (isLoading) {
+            return currentNode;
+          }
 
-          const response = await getNodeTypes();
-
-          set({
-            nodes: response,
-          });
-          return response;
+          set({ isLoading: true });
+          
+          try {
+            const response = await getNodeTypes();
+            set({
+              nodes: response,
+              isLoading: false,
+            });
+            return response;
+          } catch (error) {
+            set({ isLoading: false });
+            return [];
+          }
         },
       }),
       {
