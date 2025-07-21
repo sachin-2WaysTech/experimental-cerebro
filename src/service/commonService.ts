@@ -6,7 +6,6 @@ export async function getNodeTypes(): Promise<NodeType[]> {
   try {
     const response = await privateClient.get('/nodes/');
     const { data, status } = response
-    
     if (status) {
       return data
     } else {
@@ -45,6 +44,23 @@ export async function createWorkflow(body: Record<string, unknown>): Promise<unk
     }
   } catch (error) {
     console.error('Error creating workflow:', error);
+    return [];
+  }
+}
+
+export async function getCredentials(): Promise<any[]> {
+  try {
+    const response = await privateClient.get('/credentials/');
+    console.log("Credentials Response:", response);
+    const { data, status } = response
+    
+    if (status) {
+      return data
+    } else {
+      return []
+    }
+  } catch (error) {
+    console.error('Error fetching credentials:', error);
     return [];
   }
 }

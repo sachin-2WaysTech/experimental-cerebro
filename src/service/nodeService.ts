@@ -63,7 +63,7 @@ class NodeService {
 		try {
 			const response = await privateClient.get("/nodes/");
 			const { data, status } = response.data;
-
+			
 			if (status) {
 				return data;
 			} else {

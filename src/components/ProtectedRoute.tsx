@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useNodesStore } from "@/stores/nodes_store";
+import { useCredentialsStore, useNodesStore } from "@/stores/nodes_store";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,13 +11,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   const getNodes = useNodesStore((state) => state.getNodes);
+  const getCredentials = useCredentialsStore((state) => state.getCredentials);
 
   // Load nodes when the user is authenticated
   useEffect(() => {
     if (isAuthenticated) {
       getNodes();
+      getCredentials();
     }
-  }, [isAuthenticated, getNodes]);
+  }, [isAuthenticated]);
 
   // Show loading spinner while checking authentication
   if (isLoading) {
