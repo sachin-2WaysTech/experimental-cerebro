@@ -51,7 +51,6 @@ export async function createWorkflow(body: Record<string, unknown>): Promise<unk
 export async function getCredentials(): Promise<any[]> {
   try {
     const response = await privateClient.get('/credentials/');
-    console.log("Credentials Response:", response);
     const { data, status } = response
     
     if (status) {
