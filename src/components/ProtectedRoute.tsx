@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useNodesStore } from "@/stores/nodes_store";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -9,6 +10,14 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
+  const getNodes = useNodesStore((state) => state.getNodes);
+
+  // Load nodes when the user is authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      getNodes();
+    }
+  }, [isAuthenticated, getNodes]);
 
   // Show loading spinner while checking authentication
   if (isLoading) {
