@@ -59,20 +59,8 @@ export interface NodeData {
 class NodeService {
 	private nodeTypes: NodeType[] = [];
 
-	async getNodeTypes(): Promise<NodeType[]> {
-		try {
-			const response = await privateClient.get("/nodes/");
-			const { data, status } = response.data;
-
-			if (status) {
-				return data;
-			} else {
-				return [];
-			}
-		} catch (error) {
-			console.error("Error fetching node types:", error);
-			return [];
-		}
+	setNodeTypes(nodeTypes: NodeType[]) {
+		this.nodeTypes = nodeTypes;
 	}
 
 	getNodeTypeByName(name: string): NodeType | undefined {
