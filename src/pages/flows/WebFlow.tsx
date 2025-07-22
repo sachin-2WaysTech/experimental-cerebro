@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useWorkflowStore } from "@/stores/workflow_store";
 import { useNavigate } from "react-router-dom";
 import { Plus, Calendar, Tag, Play, Edit, Trash2 } from "lucide-react";
+import { getAddWorkflow } from "@/service/commonService";
 
 function WebFlow() {
   const {
@@ -11,6 +12,7 @@ function WebFlow() {
     getAllWorkflows,
     deleteWorkflow,
     clearError,
+    addWorkflow,
   } = useWorkflowStore();
 
   const navigate = useNavigate();
@@ -30,13 +32,22 @@ function WebFlow() {
     }
   };
 
-  const handleCreateNewWorkflow = () => {
-    // Generate a unique ID for the new workflow
-    const uniqueId = `workflow_${workflows.length}`;
+  const handleCreateNewWorkflow = async () => {
+    try {
+      const newWorkflow = await getAddWorkflow();
 
-    // Navigate to the flow editor with the unique ID
-    navigate(`/flow/${uniqueId}`);
+      if (newWorkflow && "id" in newWorkflow) {
+        addWorkflow(newWorkflow);
+        navigate(`/flow/${newWorkflow.id}`);
+      } else {
+        alert("Failed to create new workflow.");
+      }
+    } catch (error) {
+      console.error("Error creating new workflow:", error);
+      alert("An error occurred while creating a workflow.");
+    }
   };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -142,7 +153,7 @@ function WebFlow() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {workflows.map((workflow) => (
               <div
-                key={workflow.uid}
+                key={workflow.id}
                 className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200"
               >
                 <div className="p-6">
@@ -158,11 +169,10 @@ function WebFlow() {
                           <span>v{workflow.version_no}</span>
                         </span>
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            workflow.is_active
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${workflow.is_active
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                            }`}
                         >
                           {workflow.is_active ? "Active" : "Inactive"}
                         </span>
@@ -194,13 +204,13 @@ function WebFlow() {
                   <div className="grid grid-cols-2 gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
                     <div className="text-center">
                       <div className="text-lg font-semibold text-gray-900">
-                        {Object.keys(workflow.work_flow.nodes).length}
+                        {/* {Object.keys(workflow.work_flow.nodes).length} */}
                       </div>
                       <div className="text-xs text-gray-500">Nodes</div>
                     </div>
                     <div className="text-center">
                       <div className="text-lg font-semibold text-gray-900">
-                        {Object.keys(workflow.work_flow.connections).length}
+                        {/* {Object.keys(workflow.work_flow.connections).length} */}
                       </div>
                       <div className="text-xs text-gray-500">Connections</div>
                     </div>
@@ -217,7 +227,7 @@ function WebFlow() {
                     <button
                       className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
                       onClick={() =>
-                        console.log("Execute workflow:", workflow.uid)
+                        console.log("Execute workflow:", workflow.id)
                       }
                     >
                       <Play size={14} />
@@ -226,7 +236,7 @@ function WebFlow() {
                     <button
                       className="flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors"
                       onClick={() =>
-                        console.log("Edit workflow:", workflow.uid)
+                        console.log("Edit workflow:", workflow.id)
                       }
                     >
                       <Edit size={14} />
@@ -234,7 +244,7 @@ function WebFlow() {
                     <button
                       className="flex items-center justify-center px-3 py-2 bg-red-50 text-red-600 text-sm rounded-md hover:bg-red-100 transition-colors"
                       onClick={() =>
-                        handleDeleteWorkflow(workflow.uid, workflow.name)
+                        handleDeleteWorkflow(workflow.id, workflow.name)
                       }
                     >
                       <Trash2 size={14} />
