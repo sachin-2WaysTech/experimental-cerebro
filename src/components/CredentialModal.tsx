@@ -4,6 +4,8 @@ import * as Icons from 'lucide-react';
 import Modal from './Modal';
 import { useCredentialsStore } from '../stores/nodes_store';
 import type { CredentialParameter } from '../stores/nodes_store';
+import { useFieldVisibility } from '../hooks/useFieldVisibility';
+import FieldRenderer from './shared/FieldRenderer';
 
 interface CredentialModalProps {
   isOpen: boolean;
@@ -29,9 +31,18 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
     reset,
   } = useForm();
+
+  // Watch all form values for conditional display
+  const formValues = watch();
+
+  // Use shared visibility hook
+  const visibleFields = useFieldVisibility(credentialType?.parameters || [], formValues);
+
+
 
   const onSubmit = async (data: Record<string, unknown>) => {
     if (!credentialType) return;
@@ -64,66 +75,15 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
   };
 
   const renderField = (param: CredentialParameter) => {
-    const commonProps = {
-      ...register(param.name, { required: param.required }),
-      className:
-        "w-full px-3 py-2 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500",
-    };
+    if (!visibleFields.has(param.name)) return null;
 
-    switch (param.type) {
-      case "string":
-        return (
-          <input
-            type={param.sensitive ? "password" : "text"}
-            placeholder={param.placeholder || param.description}
-            {...commonProps}
-          />
-        );
-
-      case "number":
-        return (
-          <input
-            type="number"
-            placeholder={param.placeholder || param.description}
-            min={param.type_options?.min_value}
-            max={param.type_options?.max_value}
-            {...commonProps}
-          />
-        );
-
-      case "boolean":
-        return (
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              {...register(param.name)}
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <span className="text-sm text-gray-300">{param.description}</span>
-          </label>
-        );
-
-      case "options":
-        return (
-          <select {...commonProps}>
-            <option value="">Select {param.display_name}</option>
-            {param.options?.map((option: { name: string; value: string; description?: string }) => (
-              <option key={option.value} value={option.value}>
-                {option.name}
-              </option>
-            ))}
-          </select>
-        );
-
-      default:
-        return (
-          <input
-            type="text"
-            placeholder={param.placeholder || param.description}
-            {...commonProps}
-          />
-        );
-    }
+    return (
+      <FieldRenderer
+        field={param}
+        register={register}
+        errors={errors}
+      />
+    );
   };
 
   if (!credentialType) return null;
@@ -134,7 +94,7 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
         <div className="space-y-4">
           {/* Credential Name Field */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-300">
+            <label className="block text-sm font-medium text-gray-500">
               Credential Name
               <span className="text-red-500 ml-1">*</span>
             </label>
@@ -142,7 +102,7 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
               type="text"
               placeholder="Enter a name for this credential"
               {...register('name', { required: true })}
-              className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-white border border-gray-600 rounded-lg text-white placeholder-gray-500"
             />
             {errors.name && (
               <p className="text-xs text-red-500">Credential name is required</p>
@@ -151,42 +111,25 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
 
           {/* Display Name Field */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-300">
+            <label className="block text-sm font-medium text-gray-500">
               Display Name
             </label>
             <input
               type="text"
               placeholder="Enter a display name (optional)"
               {...register('display_name')}
-              className="w-full px-3 py-2 bg-[#2a2a2a] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-white border border-gray-600 rounded-lg text-white placeholder-gray-500"
             />
           </div>
 
           {/* Dynamic Fields based on credential type parameters */}
-          {credentialType.parameters.map((param) => (
-            <div key={param.name} className="space-y-2">
-              <label className="block text-sm font-medium text-gray-300">
-                {param.display_name}
-                {param.required && (
-                  <span className="text-red-500 ml-1">*</span>
-                )}
-              </label>
-
-              {renderField(param)}
-
-              {param.description && (
-                <p className="text-xs text-gray-300">{param.description}</p>
-              )}
-
-              {errors[param.name] && (
-                <p className="text-xs text-red-500">
-                  {param.required
-                    ? `${param.display_name} is required`
-                    : "Invalid value"}
-                </p>
-              )}
-            </div>
-          ))}
+          {credentialType.parameters.map((param) =>
+            visibleFields.has(param.name) && (
+              <div key={param.name}>
+                {renderField(param)}
+              </div>
+            )
+          )}
         </div>
 
         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">

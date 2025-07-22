@@ -12,13 +12,14 @@ export interface CredentialParameter {
   sensitive?: boolean;
   default?: any;
   placeholder?: string;
+  depends_on?: string[];
   options?: Array<{
     name: string;
     value: string;
     description?: string;
   }>;
   display_options?: {
-    show: {
+    show?: {
       [key: string]: string[];
     };
   };
@@ -26,6 +27,10 @@ export interface CredentialParameter {
     max_value?: number;
     min_value?: number;
     number_precision?: number;
+    load_options_depends_on?: string[];
+    load_options?: {
+      function: string;
+    };
   };
 }
 
