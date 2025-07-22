@@ -52,7 +52,7 @@ export async function getCredentials(): Promise<any[]> {
   try {
     const response = await privateClient.get('/credentials/');
     const { data, status } = response
-    
+
     if (status) {
       return data
     } else {
@@ -60,6 +60,43 @@ export async function getCredentials(): Promise<any[]> {
     }
   } catch (error) {
     console.error('Error fetching credentials:', error);
+    return [];
+  }
+}
+
+export async function createCredential(credentialData: {
+  name: string;
+  display_name: string;
+  type: string;
+  data: Record<string, unknown>;
+}): Promise<any> {
+  try {
+    const response = await privateClient.post('/credentials/', credentialData); // Adjust the endpoint as needed
+    const { data, status } = response;
+
+    if (status) {
+      return data;
+    } else {
+      throw new Error('Failed to create credential');
+    }
+  } catch (error) {
+    console.error('Error creating credential:', error);
+    throw error;
+  }
+}
+
+export async function getSavedCredentials(): Promise<any[]> {
+  try {
+    const response = await privateClient.get('/credentials/saved/'); // Adjust the endpoint as needed
+    const { data, status } = response;
+
+    if (status) {
+      return data;
+    } else {
+      return [];
+    }
+  } catch (error) {
+    console.error('Error fetching saved credentials:', error);
     return [];
   }
 }
