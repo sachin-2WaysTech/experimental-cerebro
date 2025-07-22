@@ -54,19 +54,19 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) =>
         style={{
           borderRadius: '20px',
           border: '1px solid rgba(255, 255, 255, 0.07)',
-          background: 'linear-gradient(150deg, rgba(255, 222, 88, 0.04) 0%, rgba(255, 142, 108, 0.04) 50%, rgba(186, 73, 171, 0.04) 100%)',
+          background: 'white',
           boxShadow: '0px 0px 22.7px 0px rgba(0, 0, 0, 0.40)',
-          backdropFilter: 'blur(3.5px)'
+          backdropFilter: 'blur(3.5px)',
         }}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           {title && (
-            <h2 className="text-xl font-semibold">{title}</h2>
+            <h2 className="text-xl font-semibold text-gray-500">{title}</h2>
           )}
           <button
             onClick={onClose}
-            className="ml-auto p-2 rounded-full hover:bg-white/10 transition-colors"
+            className="ml-auto p-2 rounded-full bg-gray-500 hover:bg-gray-600 transition-colors"
             aria-label="Close modal"
           >
             <X size={20} />
@@ -74,7 +74,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) =>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 text-gray-500">
           {children}
         </div>
       </div>

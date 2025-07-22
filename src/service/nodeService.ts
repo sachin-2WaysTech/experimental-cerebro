@@ -7,6 +7,8 @@ export interface NodeParameter {
 	display_name: string;
 	description: string;
 	required: boolean;
+	placeholder?: string;
+	depends_on?: string[];
 	options?: Array<{ name: string; value: string; description?: string }>;
 	display_options?: {
 		show?: { [key: string]: string[] };
@@ -17,6 +19,10 @@ export interface NodeParameter {
 		multiple_values?: boolean;
 		multiple_value_button_text?: string;
 		number_precision?: number;
+		load_options_depends_on?: string[];
+		load_options?: {
+			function: string;
+		};
 	};
 }
 

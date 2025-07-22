@@ -1,9 +1,9 @@
-import { getNodeTypes, getCredentials } from "@/service/commonService";
+import { getNodeTypes, getCredentials, getSavedCredentials, createCredential } from "@/service/commonService";
 import type { NodeType } from "@/service/nodeService";
 import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
 
-interface CredentialParameter {
+export interface CredentialParameter {
   name: string;
   type: string;
   display_name: string;
@@ -12,13 +12,14 @@ interface CredentialParameter {
   sensitive?: boolean;
   default?: string;
   placeholder?: string;
+  depends_on?: string[];
   options?: Array<{
     name: string;
     value: string;
     description?: string;
   }>;
   display_options?: {
-    show: {
+    show?: {
       [key: string]: string[];
     };
   };
@@ -26,6 +27,10 @@ interface CredentialParameter {
     max_value?: number;
     min_value?: number;
     number_precision?: number;
+    load_options_depends_on?: string[];
+    load_options?: {
+      function: string;
+    };
   };
 }
 
@@ -95,9 +100,28 @@ export const useNodesStore = create<NodesStore>()(
   )
 );
 
+export interface SavedCredential {
+  id: string;
+  name: string;
+  display_name: string;
+  type: string;
+  data: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
 interface CredentialsStore {
   credentials: CredentialType[];
+  savedCredentials: SavedCredential[];
   getCredentials: () => Promise<CredentialType[]>;
+  getSavedCredentials: () => Promise<SavedCredential[]>;
+  createCredential: (credentialData: {
+    name: string;
+    display_name: string;
+    type: string;
+    data: Record<string, unknown>;
+  }) => Promise<SavedCredential>;
+  addSavedCredential: (credential: SavedCredential) => void;
   clearCredentials: () => void;
   isLoading: boolean;
 }
@@ -107,6 +131,7 @@ export const useCredentialsStore = create<CredentialsStore>()(
     persist(
       (set, get) => ({
         credentials: [],
+        savedCredentials: [],
         isLoading: false,
         getCredentials: async () => {
           const currentCredentials = get().credentials;
@@ -130,14 +155,55 @@ export const useCredentialsStore = create<CredentialsStore>()(
             return [];
           }
         },
+        getSavedCredentials: async () => {
+          try {
+            const response = await getSavedCredentials();
+            set({ savedCredentials: response });
+            return response;
+          } catch (error) {
+            console.error("Error fetching saved credentials:", error);
+            return get().savedCredentials;
+          }
+        },
+        createCredential: async (credentialData) => {
+          try {
+            const newCredential = await createCredential(credentialData);
+            const savedCredential: SavedCredential = {
+              id: newCredential.id || Date.now().toString(),
+              name: credentialData.name,
+              display_name: credentialData.display_name,
+              type: credentialData.type,
+              data: credentialData.data,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+
+            set((state) => ({
+              savedCredentials: [...state.savedCredentials, savedCredential],
+            }));
+
+            return savedCredential;
+          } catch (error) {
+            console.error("Error creating credential:", error);
+            throw error;
+          }
+        },
+        addSavedCredential: (credential: SavedCredential) => {
+          set((state) => ({
+            savedCredentials: [...state.savedCredentials, credential],
+          }));
+        },
         clearCredentials: () => {
-          set({ credentials: [] });
+          set({ credentials: [], savedCredentials: [] });
         },
       }),
       {
         name: "credentials-storage",
         storage: createJSONStorage(() => localStorage),
-        partialize: (state) => ({ credentials: state.credentials }), // Only persist credentials
+        partialize: (state) => ({
+          credentials: state.credentials,
+          savedCredentials: state.savedCredentials
+        }), // Persist both credential types and saved credentials
       }
     ),
     { name: "credentials-Store" }
