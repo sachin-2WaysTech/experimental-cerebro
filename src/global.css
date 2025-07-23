@@ -166,7 +166,7 @@
   background-color: #1F1F1F;
 }
 
-/* Node dragging */
+/* Node dragging and selection */
 
 .react-flow__node {
   background-color: #2b2b2b;
@@ -177,6 +177,36 @@
 
 .react-flow__node.dragging {
   opacity: 0.8;
+}
+
+.react-flow__node.selected {
+  border-color: #FF8E6C;
+  box-shadow: 0 0 0 2px rgba(255, 142, 108, 0.3);
+}
+
+.react-flow__node.copying {
+  animation: copyPulse 0.3s ease-in-out;
+}
+
+@keyframes copyPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.react-flow__node.pasted {
+  animation: pasteSlide 0.5s ease-out;
+}
+
+@keyframes pasteSlide {
+  0% {
+    transform: scale(0.8) translateY(-10px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 
 /* Edge selection */

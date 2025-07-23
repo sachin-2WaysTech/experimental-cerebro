@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   ReactFlow,
   addEdge,
@@ -22,6 +22,8 @@ import { getLayoutedElements } from '../../utils/layoutUtils';
 import type { LayoutAlgorithm } from '../../utils/layoutUtils';
 import WorkFlowBottomBar from './WorkFlowBottomBar';
 import Modal from '@/components/Modal';
+import { useToast } from '@/components/Toast';
+import KeyboardShortcuts from '@/components/KeyboardShortcuts';
 
 const edgeTypes: EdgeTypes = {
   animatedEdge: AnimatedConnectionLine,
@@ -76,6 +78,15 @@ const WorkflowEditorInner: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nodeCounter, setNodeCounter] = useState(1);
 
+  // Toast notifications
+  const { showToast, ToastContainer } = useToast();
+
+  // Clipboard state for copy-paste functionality
+  const [clipboard, setClipboard] = useState<{
+    nodes: Node<NodeData & Record<string, unknown>>[];
+    edges: Edge[];
+  } | null>(null);
+
 
   // State for node selection modal
   const [showNodeSelectionModal, setShowNodeSelectionModal] = useState(false);
@@ -86,6 +97,129 @@ const WorkflowEditorInner: React.FC = () => {
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const { fitView, screenToFlowPosition } = useReactFlow();
+
+  // Get selected nodes and edges
+  const getSelectedElements = useCallback(() => {
+    const selectedNodes = nodes.filter(node => node.selected);
+    const selectedNodeIds = selectedNodes.map(node => node.id);
+
+    // Get edges that connect selected nodes
+    const selectedEdges = edges.filter(edge =>
+      selectedNodeIds.includes(edge.source) && selectedNodeIds.includes(edge.target)
+    );
+
+    return { selectedNodes, selectedEdges };
+  }, [nodes, edges]);
+
+  // Copy selected nodes and edges to clipboard
+  const copyToClipboard = useCallback(() => {
+    const { selectedNodes, selectedEdges } = getSelectedElements();
+
+    if (selectedNodes.length === 0) {
+      showToast('No nodes selected to copy', 'error');
+      return;
+    }
+
+    setClipboard({
+      nodes: selectedNodes,
+      edges: selectedEdges
+    });
+
+    showToast(`Copied ${selectedNodes.length} node${selectedNodes.length > 1 ? 's' : ''} to clipboard`, 'success');
+  }, [getSelectedElements, setClipboard, showToast]);
+
+  // Paste nodes and edges from clipboard
+  const pasteFromClipboard = useCallback(() => {
+    if (!clipboard || clipboard.nodes.length === 0) {
+      showToast('Nothing to paste', 'error');
+      return;
+    }
+
+    const pasteOffset = { x: 50, y: 50 }; // Offset for pasted nodes
+
+    // Create new node IDs and update positions
+    const nodeIdMap = new Map<string, string>();
+    const newNodes = clipboard.nodes.map((node, index) => {
+      const newId = `node-${nodeCounter + index}`;
+      nodeIdMap.set(node.id, newId);
+
+      return {
+        ...node,
+        id: newId,
+        selected: true, // Select the pasted nodes
+        position: {
+          x: node.position.x + pasteOffset.x,
+          y: node.position.y + pasteOffset.y
+        },
+        data: {
+          ...node.data,
+          id: newId,
+          label: `${node.data.nodeType.display_name} ${nodeCounter + index}`
+        }
+      };
+    });
+
+    // Update edges with new node IDs
+    const newEdges = clipboard.edges.map(edge => {
+      const newSourceId = nodeIdMap.get(edge.source);
+      const newTargetId = nodeIdMap.get(edge.target);
+
+      if (newSourceId && newTargetId) {
+        return {
+          ...edge,
+          id: `edge-${newSourceId}-${newTargetId}`,
+          source: newSourceId,
+          target: newTargetId
+        };
+      }
+      return null;
+    }).filter((edge): edge is Edge => edge !== null);
+
+    // Deselect all existing nodes first
+    setNodes(nds => nds.map(node => ({ ...node, selected: false })));
+
+    // Add new nodes and edges
+    setNodes(nds => [...nds, ...newNodes]);
+    setEdges(eds => [...eds, ...newEdges]);
+
+    // Update node counter
+    setNodeCounter(prev => prev + clipboard.nodes.length);
+
+    showToast(`Pasted ${newNodes.length} node${newNodes.length > 1 ? 's' : ''}`, 'success');
+  }, [clipboard, nodeCounter, setNodes, setEdges, setNodeCounter, showToast]);
+
+  // Handle keyboard shortcuts
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    // Check if we're in an input field or textarea
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true') {
+      return;
+    }
+
+    const isMac = navigator.userAgent.toUpperCase().indexOf('MAC') >= 0;
+    const isCtrlOrCmd = isMac ? event.metaKey : event.ctrlKey;
+
+    if (isCtrlOrCmd && event.key === 'c') {
+      event.preventDefault();
+      copyToClipboard();
+    } else if (isCtrlOrCmd && event.key === 'v') {
+      event.preventDefault();
+      pasteFromClipboard();
+    }
+  }, [copyToClipboard, pasteFromClipboard]);
+
+  // Add keyboard event listeners
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
+  // Handle selection changes
+  const onSelectionChange = useCallback(({ nodes: selectedNodes, edges: selectedEdges }: { nodes: Node[], edges: Edge[] }) => {
+    console.log(`Selected: ${selectedNodes.length} nodes, ${selectedEdges.length} edges`);
+  }, []);
 
   // Create node with automatic connection
   const createNodeWithConnection = useCallback((nodeType: NodeType, sourceNodeId: string, sourceHandle: string) => {
@@ -356,6 +490,7 @@ const WorkflowEditorInner: React.FC = () => {
           onDrop={onDrop}
           onDragOver={onDragOver}
           onNodeDoubleClick={onNodeDoubleClick}
+          onSelectionChange={onSelectionChange}
           nodeTypes={enhancedNodeTypes}
           edgeTypes={edgeTypes}
           fitView
@@ -366,6 +501,8 @@ const WorkflowEditorInner: React.FC = () => {
           maxZoom={2}
           snapToGrid={true}
           snapGrid={[15, 15]}
+          multiSelectionKeyCode="Shift"
+          selectionKeyCode="Shift"
         >
           <Background
             bgColor='#1F1F1F'
@@ -415,6 +552,8 @@ const WorkflowEditorInner: React.FC = () => {
         nodes={nodes}
         edges={edges}
       />
+      <ToastContainer />
+      <KeyboardShortcuts />
     </div>
   );
 };
