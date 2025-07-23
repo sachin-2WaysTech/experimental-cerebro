@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import * as Icons from 'lucide-react';
 import Modal from './Modal';
 import { useCredentialsStore } from '../stores/nodes_store';
-import type { CredentialParameter } from '../stores/nodes_store';
+import type { CreateCredentialConfig, CredentialParameter } from '../stores/nodes_store';
 import { useFieldVisibility } from '../hooks/useFieldVisibility';
 import FieldRenderer from './shared/FieldRenderer';
 
@@ -19,7 +19,6 @@ interface CredentialModalProps {
     parameters: CredentialParameter[];
   } | null;
 }
-
 const CredentialModal: React.FC<CredentialModalProps> = ({
   isOpen,
   onClose,
@@ -46,28 +45,44 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
 
   const onSubmit = async (data: Record<string, unknown>) => {
     if (!credentialType) return;
-
     setIsLoading(true);
+
     try {
-      // Create display name from the name if not provided
-      const displayName = data.display_name as string || data.name as string || `${credentialType.display_name} Credential`;
-      
+      const displayName =
+        (data.display_name as string) ||
+        (data.name as string) ||
+        `${credentialType.display_name} Credential`;
+
+      const parameterKeys = credentialType.parameters.map((param) => param.name);
+      const parameters: CreateCredentialConfig["parameters"] = {
+        configuration_type: "parameters",
+      };
+
+      parameterKeys.forEach((key) => {
+        if (data[key] !== undefined) {
+          parameters[key] = data[key] as string | number | boolean;
+        }
+      });
+
       await createCredential({
-        name: data.name as string,
+        name: credentialType.name,
         display_name: displayName,
-        type: credentialType.name,
-        data: data,
+        node_type: credentialType.name,
+        parameters: parameters,
       });
 
       reset();
       onClose();
     } catch (error) {
-      console.error('Error creating credential:', error);
-      // TODO: Show error message to user
+      console.error("Error creating credential:", error);
     } finally {
       setIsLoading(false);
     }
   };
+
+
+
+
 
   const handleClose = () => {
     reset();
@@ -92,23 +107,6 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
     <Modal isOpen={isOpen} onClose={handleClose} title={`Create ${credentialType.display_name} Credential`} size="lg" variant='credential'>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-4">
-          {/* Credential Name Field */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-500">
-              Credential Name
-              <span className="text-red-500 ml-1">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Enter a name for this credential"
-              {...register('name', { required: true })}
-              className="w-full px-3 py-2 bg-white border border-gray-600 rounded-lg text-white placeholder-gray-500"
-            />
-            {errors.name && (
-              <p className="text-xs text-red-500">Credential name is required</p>
-            )}
-          </div>
-
           {/* Display Name Field */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-500">
@@ -118,7 +116,7 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
               type="text"
               placeholder="Enter a display name (optional)"
               {...register('display_name')}
-              className="w-full px-3 py-2 bg-white border border-gray-600 rounded-lg text-white placeholder-gray-500"
+              className="w-full px-3 py-2 bg-white border border-gray-600 rounded-lg text-black placeholder-gray-500"
             />
           </div>
 

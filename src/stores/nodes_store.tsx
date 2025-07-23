@@ -48,6 +48,15 @@ interface CredentialType {
   allowed_nodes: string[];
   base_url: string;
 }
+export interface CreateCredentialConfig {
+  name: string;
+  display_name: string;
+  type: string;
+  parameters: {
+    configuration_type: string;
+    [key: string]: string | number | boolean;
+  };
+}
 
 interface NodesStore {
   nodes: NodeType[];
@@ -104,7 +113,7 @@ export interface SavedCredential {
   id: string;
   name: string;
   display_name: string;
-  type: string;
+  node_type: string;
   data: Record<string, unknown>;
   created_at: string;
   updated_at: string;
@@ -118,7 +127,7 @@ interface CredentialsStore {
   createCredential: (credentialData: {
     name: string;
     display_name: string;
-    type: string;
+    node_type: string;
     data: Record<string, unknown>;
   }) => Promise<SavedCredential>;
   addSavedCredential: (credential: SavedCredential) => void;
@@ -165,15 +174,23 @@ export const useCredentialsStore = create<CredentialsStore>()(
             return get().savedCredentials;
           }
         },
-        createCredential: async (credentialData) => {
+        createCredential: async (credentialData: CreateCredentialConfig) => {
           try {
-            const newCredential = await createCredential(credentialData);
+            console.log(createCredential, 'startind insidie create credential fn')
+            const fullPayload: CreateCredentialConfig & { version: string; id: string } = {
+              ...credentialData,
+              version: "1.0",
+              id: "81069d0e-00f8-43d2-8c9d-db0966c4a4c6",
+            };
+            console.log(fullPayload, 'inside create credential fn')
+
+            const newCredential = await createCredential(fullPayload);
             const savedCredential: SavedCredential = {
-              id: newCredential.id || Date.now().toString(),
-              name: credentialData.name,
-              display_name: credentialData.display_name,
-              type: credentialData.type,
-              data: credentialData.data,
+              id: newCredential.id || fullPayload.id,
+              name: fullPayload.name,
+              display_name: fullPayload.display_name,
+              node_type: fullPayload.node_type,
+              data: fullPayload.parameters,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             };
@@ -187,7 +204,8 @@ export const useCredentialsStore = create<CredentialsStore>()(
             console.error("Error creating credential:", error);
             throw error;
           }
-        },
+        }
+        ,
         addSavedCredential: (credential: SavedCredential) => {
           set((state) => ({
             savedCredentials: [...state.savedCredentials, credential],

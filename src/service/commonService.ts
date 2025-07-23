@@ -1,6 +1,7 @@
 import { privateClient } from "@/utils/privateClient";
 import type { NodeType } from "./nodeService";
 import type { Workflow, WorkflowResponse } from "@/stores/workflow_store";
+import type { CreateCredentialConfig } from "@/stores/nodes_store";
 
 export async function getNodeTypes(): Promise<NodeType[]> {
   try {
@@ -87,18 +88,20 @@ export async function getCredentials(): Promise<any[]> {
   }
 }
 
-export async function createCredential(credentialData: {
-  name: string;
-  display_name: string;
-  type: string;
-  data: Record<string, unknown>;
-}): Promise<any> {
+export async function createCredential(
+  credentialData: CreateCredentialConfig
+): Promise<any> {
   try {
-    const response = await privateClient.post("/credentials/", credentialData); // Adjust the endpoint as needed
+    console.log(credentialData, "credential data");
+    const response = await privateClient.post("/credentials/", credentialData);
+
     const { data, status } = response;
 
     if (status) {
-      return data;
+      return {
+        ...data,
+        parameters: data.parameters ?? credentialData.parameters,
+      };
     } else {
       throw new Error("Failed to create credential");
     }
