@@ -4,6 +4,7 @@ export const API_ROUTES = {
     CREATE: {route:"/workflows", method: "POST"},
     UPDATE: (id: string) => ({route: `/workflows/${id}`, method: "PUT"}),
     DELETE: (id: string) => ({route: `/workflows/${id}`, method: "DELETE"}),
+    EXECUTE: (id: string) => ({route: `/workflows/execute/${id}`, method: "POST"}),
   },
   NODES: {
     GET_ALL: {route: "/nodes", method: "GET"},

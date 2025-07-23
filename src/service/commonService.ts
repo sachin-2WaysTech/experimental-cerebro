@@ -108,6 +108,34 @@ export async function createCredential(credentialData: {
   }
 }
 
+export async function executeWorkflow(
+  workflowId: string,
+  workflowData: {
+    work_flow: {
+      nodes: Record<string, any>;
+      connections: Record<string, any>;
+    };
+    input_data: Record<string, any>;
+  }
+): Promise<any> {
+  try {
+    const response = await privateClient.post(
+      `/workflows/execute/${workflowId}`,
+      workflowData
+    );
+    const { data, status } = response;
+
+    if (status || response.status === 200) {
+      return data;
+    } else {
+      throw new Error("Failed to execute workflow");
+    }
+  } catch (error) {
+    console.error("Error executing workflow:", error);
+    throw error;
+  }
+}
+
 export async function getSavedCredentials(): Promise<any[]> {
   try {
     const response = await privateClient.get("/credentials/saved/"); // Adjust the endpoint as needed
