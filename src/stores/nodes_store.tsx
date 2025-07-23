@@ -51,7 +51,7 @@ interface CredentialType {
 export interface CreateCredentialConfig {
   name: string;
   display_name: string;
-  type: string;
+  node_type: string;
   parameters: {
     configuration_type: string;
     [key: string]: string | number | boolean;
