@@ -89,7 +89,7 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
   if (!credentialType) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={`Create ${credentialType.display_name} Credential`} size="lg">
+    <Modal isOpen={isOpen} onClose={handleClose} title={`Create ${credentialType.display_name} Credential`} size="lg" variant='credential'>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-4">
           {/* Credential Name Field */}
