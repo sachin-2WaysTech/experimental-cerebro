@@ -35,7 +35,7 @@ interface Workflow {
   is_active: boolean;
   name: string;
   tags: WorkflowTag[];
-  uid: string;
+  id: string;
   updated_at: string;
   version_no: number;
   work_flow: {
@@ -87,8 +87,8 @@ export const useWorkflowStore = create<WorkflowStoreState>()(
           }
         },
 
-        getWorkflowByUid: (uid: string) => {
-          return get().workflows.find((workflow) => workflow.uid === uid);
+        getWorkflowByUid: (id: string) => {
+          return get().workflows.find((workflow) => workflow.id === id);
         },
 
         addWorkflow: (workflow: Workflow) => {
@@ -97,18 +97,18 @@ export const useWorkflowStore = create<WorkflowStoreState>()(
           }));
         },
 
-        updateWorkflow: (uid: string, updates: Partial<Workflow>) => {
+        updateWorkflow: (id: string, updates: Partial<Workflow>) => {
           set((state) => ({
             workflows: state.workflows.map((workflow) =>
-              workflow.uid === uid ? { ...workflow, ...updates } : workflow
+              workflow.id === id ? { ...workflow, ...updates } : workflow
             ),
           }));
         },
 
-        deleteWorkflow: (uid: string) => {
+        deleteWorkflow: (id: string) => {
           set((state) => ({
             workflows: state.workflows.filter(
-              (workflow) => workflow.uid !== uid
+              (workflow) => workflow.id !== id
             ),
           }));
         },

@@ -10,7 +10,7 @@ export interface CredentialParameter {
   description: string;
   required: boolean;
   sensitive?: boolean;
-  default?: any;
+  default?: string;
   placeholder?: string;
   depends_on?: string[];
   options?: Array<{
@@ -64,19 +64,19 @@ export const useNodesStore = create<NodesStore>()(
         getNodes: async () => {
           const currentNode = get().nodes;
           const { isLoading } = get();
-          
+
           // Return cached nodes if already loaded
           if (currentNode.length > 0) {
             return currentNode;
           }
-          
+
           // Prevent multiple simultaneous calls
           if (isLoading) {
             return currentNode;
           }
 
           set({ isLoading: true });
-          
+
           try {
             const response = await getNodeTypes();
             set({
@@ -85,6 +85,7 @@ export const useNodesStore = create<NodesStore>()(
             });
             return response;
           } catch (error) {
+            console.error(error)
             set({ isLoading: false });
             return [];
           }

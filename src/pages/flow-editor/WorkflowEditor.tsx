@@ -76,6 +76,7 @@ const WorkflowEditorInner: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nodeCounter, setNodeCounter] = useState(1);
 
+
   // State for node selection modal
   const [showNodeSelectionModal, setShowNodeSelectionModal] = useState(false);
   const [connectionInfo, setConnectionInfo] = useState<{

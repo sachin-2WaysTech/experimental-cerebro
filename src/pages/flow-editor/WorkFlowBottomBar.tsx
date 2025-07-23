@@ -2,7 +2,7 @@ import Modal from "@/components/Modal";
 import { Ellipsis, History, Plus } from "lucide-react";
 import { useState, type FC } from "react";
 import NodeModelContent, { type NodesSidebarProps } from "./NodeModelContent";
-import { privateClient } from "@/utils/privateClient";
+import { executeWorkflow } from "@/service/commonService";
 import type { Node, Edge } from "@xyflow/react";
 import type { NodeData } from "../../service/nodeService";
 import { useParams } from "react-router-dom";
@@ -33,29 +33,12 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
       return null;
     }
 
-    // Find the first node as start node (you can modify this logic as needed)
-    const startNode = nodes[0];
-
     // Format nodes according to API specification
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const formattedNodes: Record<string, any> = {};
 
     nodes.forEach((node) => {
       const nodeData = node.data;
-
-      // Extract credentials from parameters if they exist
-      const credentials: Record<string, unknown> = {};
-      if (
-        nodeData.nodeType.credentials &&
-        nodeData.nodeType.credentials.length > 0
-      ) {
-        nodeData.nodeType.credentials.forEach((credentialDef) => {
-          const credentialValue = nodeData.parameters?.[credentialDef.name];
-          if (credentialValue) {
-            credentials[credentialDef.name] = credentialValue;
-          }
-        });
-      }
 
       // Extract parameters (excluding credentials)
       const parameters: Record<string, unknown> = {};
@@ -76,16 +59,29 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
         });
       }
 
-      formattedNodes[nodeData.id] = {
+      // Create node object with required fields
+      const nodeObject: Record<string, any> = {
         name: nodeData.id,
         type: nodeData.type,
         display_name: nodeData.nodeType.display_name,
         description: nodeData.nodeType.description,
         version: 1.0,
         position: [Math.round(node.position.x), Math.round(node.position.y)],
-        credentials: Object.keys(credentials).length > 0 ? credentials : {},
-        parameters: parameters,
       };
+
+      // Add is_trigger field for trigger nodes
+      if (nodeData.type === "manual_trigger" || nodeData.nodeType.name === "manual_trigger") {
+        nodeObject.is_trigger = true;
+      } else {
+        nodeObject.is_trigger = false;
+      }
+
+      // Add parameters if they exist
+      if (Object.keys(parameters).length > 0) {
+        nodeObject.parameters = parameters;
+      }
+
+      formattedNodes[nodeData.id] = nodeObject;
     });
 
     // Format connections from edges
@@ -100,38 +96,29 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
       if (!connections[edge.source][outputHandle]) {
         connections[edge.source][outputHandle] = [];
       }
-      // Add target node to the connection array
-      if (
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        !connections[edge.source][outputHandle].some((conn: any) =>
-          conn.includes(edge.target)
-        )
-      ) {
-        connections[edge.source][outputHandle].push([edge.target]);
-      } else {
-        // If connection already exists, add to existing array
-        const existingConnection = connections[edge.source][outputHandle].find(
-          (conn: unknown) => Array.isArray(conn)
-        );
-        if (existingConnection && !existingConnection.includes(edge.target)) {
-          existingConnection.push(edge.target);
-        }
+
+      // Find existing connection array or create new one
+      let targetArray = connections[edge.source][outputHandle].find(
+        (conn: any[]) => Array.isArray(conn)
+      );
+
+      if (!targetArray) {
+        targetArray = [];
+        connections[edge.source][outputHandle].push(targetArray);
+      }
+
+      // Add target if not already present
+      if (!targetArray.includes(edge.target)) {
+        targetArray.push(edge.target);
       }
     });
 
     return {
-      name: flowId,
-      description: "Test workflow execution from editor",
-      is_active: true,
-      status: "published",
-      tag_ids: [],
-      version_name: "v0.1",
       work_flow: {
-        work_flow_id: null,
-        start_node: startNode.data.id,
         nodes: formattedNodes,
         connections: connections,
       },
+      input_data: {},
     };
   };
 
@@ -139,6 +126,11 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
   const handleTestWorkflow = async () => {
     const workflowData = formatWorkflowData();
     if (!workflowData) return;
+
+    if (!flowId) {
+      alert("Workflow ID is required to execute the workflow.");
+      return;
+    }
 
     setIsTestingWorkflow(true);
 
@@ -148,22 +140,13 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
         JSON.stringify(workflowData, null, 2)
       );
 
-      const response = await privateClient.post(
-        "/workflows/execute/test",
-        workflowData
-      );
+      const response = await executeWorkflow(flowId, workflowData);
 
-      console.log("API Response:", response.data);
+      console.log("API Response:", response);
 
-      if (response.data?.status || response.status === 200) {
-        alert("Workflow test initiated successfully!");
-        console.log("Test response:", response.data);
-      } else {
-        alert(
-          "Failed to start workflow test: " +
-            (response.data?.message || "Unknown error")
-        );
-      }
+      alert("Workflow test initiated successfully!");
+      console.log("Test response:", response);
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Error testing workflow:", error);
