@@ -124,12 +124,7 @@ interface CredentialsStore {
   savedCredentials: SavedCredential[];
   getCredentials: () => Promise<CredentialType[]>;
   getSavedCredentials: () => Promise<SavedCredential[]>;
-  createCredential: (credentialData: {
-    name: string;
-    display_name: string;
-    node_type: string;
-    data: Record<string, unknown>;
-  }) => Promise<SavedCredential>;
+  createCredential: (credentialData: CreateCredentialConfig) => Promise<SavedCredential>;
   addSavedCredential: (credential: SavedCredential) => void;
   clearCredentials: () => void;
   isLoading: boolean;
@@ -176,20 +171,18 @@ export const useCredentialsStore = create<CredentialsStore>()(
         },
         createCredential: async (credentialData: CreateCredentialConfig) => {
           try {
-            console.log(createCredential, 'startind insidie create credential fn')
             const fullPayload: CreateCredentialConfig & { version: string; id: string } = {
               ...credentialData,
               version: "1.0",
               id: "81069d0e-00f8-43d2-8c9d-db0966c4a4c6",
             };
-            console.log(fullPayload, 'inside create credential fn')
 
             const newCredential = await createCredential(fullPayload);
             const savedCredential: SavedCredential = {
               id: newCredential.id || fullPayload.id,
               name: fullPayload.name,
               display_name: fullPayload.display_name,
-              node_type: fullPayload.node_type,
+              node_type: fullPayload.name,
               data: fullPayload.parameters,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),

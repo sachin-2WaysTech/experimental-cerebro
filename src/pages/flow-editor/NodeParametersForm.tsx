@@ -39,7 +39,7 @@ const NodeParametersForm: React.FC<NodeParametersFormProps> = ({
 
   // Helper function to get saved credentials by type
   const getSavedCredentialsByType = (credentialType: string) => {
-    return savedCredentials.filter(cred => cred.type === credentialType);
+    return savedCredentials.filter(cred => cred.node_type === credentialType);
   };
 
   // Helper function to check if a parameter is a credential field

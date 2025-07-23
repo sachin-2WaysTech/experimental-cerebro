@@ -3,6 +3,7 @@ import { Ellipsis, History, Plus } from "lucide-react";
 import { useState, type FC } from "react";
 import NodeModelContent, { type NodesSidebarProps } from "./NodeModelContent";
 import { executeWorkflow } from "@/service/commonService";
+import { useCredentialsStore } from "@/stores/nodes_store";
 import type { Node, Edge } from "@xyflow/react";
 import type { NodeData } from "../../service/nodeService";
 import { useParams } from "react-router-dom";
@@ -21,6 +22,7 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
   edges = [],
 }) => {
   const { flowId } = useParams();
+  const savedCredentials = useCredentialsStore((state) => state.savedCredentials);
 
   const [tabs, setTabs] = useState<TabsType>("editor");
   const [showModal, setShowModal] = useState(false);
@@ -40,21 +42,47 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
     nodes.forEach((node) => {
       const nodeData = node.data;
 
-      // Extract parameters (excluding credentials)
+      // Debug: Log node data to see what's available
+      console.log(`Processing node ${nodeData.id}:`, {
+        parameters: nodeData.parameters,
+        credentialDefs: nodeData.nodeType.credentials
+      });
+
+      // Extract credentials from parameters
+      const credentials: Record<string, unknown> = {};
+      // Extract regular parameters (excluding credentials)
       const parameters: Record<string, unknown> = {};
+
       if (nodeData.parameters) {
         Object.entries(nodeData.parameters).forEach(([key, value]) => {
-          // Skip credential fields as they're handled separately
           const isCredential = nodeData.nodeType.credentials?.some(
             (cred) => cred.name === key
           );
-          if (
-            !isCredential &&
-            value !== undefined &&
-            value !== null &&
-            value !== ""
-          ) {
-            parameters[key] = value;
+
+          if (value !== undefined && value !== null && value !== "") {
+            if (isCredential) {
+              // Transform credential ID to proper format with id and name
+              const credentialId = value as string;
+              const savedCredential = savedCredentials.find(cred => cred.id === credentialId);
+
+              if (savedCredential) {
+                credentials[key] = {
+                  id: savedCredential.id,
+                  name: savedCredential.display_name || savedCredential.name
+                };
+                console.log(`Transformed credential ${key}:`, credentials[key]);
+              } else {
+                // Fallback if credential not found in saved credentials
+                credentials[key] = {
+                  id: credentialId,
+                  name: "Unknown Credential"
+                };
+                console.log(`Credential ${key} not found in saved credentials, using fallback:`, credentials[key]);
+              }
+            } else {
+              // Include non-credential fields in parameters object
+              parameters[key] = value;
+            }
           }
         });
       }
@@ -74,6 +102,12 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
         nodeObject.is_trigger = true;
       } else {
         nodeObject.is_trigger = false;
+      }
+
+      // Add credentials if they exist
+      if (Object.keys(credentials).length > 0) {
+        nodeObject.credentials = credentials;
+        console.log(`Node ${nodeData.id} has credentials:`, credentials);
       }
 
       // Add parameters if they exist
