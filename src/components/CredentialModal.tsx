@@ -60,7 +60,32 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
 
       parameterKeys.forEach((key) => {
         if (data[key] !== undefined) {
-          parameters[key] = data[key] as string | number | boolean;
+          // Find the parameter definition to get its type
+          const paramDef = credentialType.parameters.find(p => p.name === key);
+          const rawValue = data[key];
+
+          if (paramDef && rawValue !== null && rawValue !== '') {
+            // Convert the value based on the field type
+            switch (paramDef.type) {
+              case 'number':
+                parameters[key] = Number(rawValue);
+                console.log(`Converted ${key} from "${rawValue}" (${typeof rawValue}) to ${parameters[key]} (${typeof parameters[key]})`);
+                break;
+              case 'boolean':
+                parameters[key] = Boolean(rawValue);
+                console.log(`Converted ${key} from "${rawValue}" (${typeof rawValue}) to ${parameters[key]} (${typeof parameters[key]})`);
+                break;
+              case 'string':
+              default:
+                parameters[key] = String(rawValue);
+                console.log(`Converted ${key} from "${rawValue}" (${typeof rawValue}) to ${parameters[key]} (${typeof parameters[key]})`);
+                break;
+            }
+          } else if (rawValue !== null && rawValue !== '') {
+            // Fallback for unknown types
+            parameters[key] = rawValue as string | number | boolean;
+            console.log(`Used fallback for ${key}: ${parameters[key]} (${typeof parameters[key]})`);
+          }
         }
       });
 
