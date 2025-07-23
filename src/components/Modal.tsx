@@ -7,9 +7,10 @@ interface ModalProps {
   title?: string;
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  variant?: 'default' | 'credential';
 }
 
-const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) => {
+const Modal = ({ isOpen, onClose, title, children, size = 'md', variant = 'default' }: ModalProps) => {
   // Close modal on escape key
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -40,6 +41,25 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) =>
     full: 'w-full max-w-6xl max-h-[90vh]'
   };
 
+  // Variant-specific styles
+  const getVariantStyles = () => {
+    if (variant === 'credential') {
+      return {
+        background: 'white',
+        textColor: 'text-gray-500',
+        // buttonClass: 'bg-gray-500 hover:bg-gray-600'
+      };
+    }
+
+    return {
+      background: 'linear-gradient(150deg, rgba(255, 222, 88, 0.04) 0%, rgba(255, 142, 108, 0.04) 50%, rgba(186, 73, 171, 0.04) 100%)',
+      textColor: 'text-white',
+      // buttonClass: 'hover:bg-white/10'
+    };
+  };
+
+  const variantStyles = getVariantStyles();
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
@@ -50,23 +70,23 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) =>
 
       {/* Modal */}
       <div
-        className={`relative text-white ${sizeClasses[size]} flex flex-col`}
+        className={`relative ${variantStyles.textColor} ${sizeClasses[size]} flex flex-col`}
         style={{
-          borderRadius: '20px',
+         borderRadius: '20px',
           border: '1px solid rgba(255, 255, 255, 0.07)',
-          background: 'white',
+          background: variantStyles.background,
           boxShadow: '0px 0px 22.7px 0px rgba(0, 0, 0, 0.40)',
-          backdropFilter: 'blur(3.5px)',
+          backdropFilter: 'blur(3.5px)'
         }}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           {title && (
-            <h2 className="text-xl font-semibold text-gray-500">{title}</h2>
+            <h2 className={`text-xl font-semibold ${variantStyles.textColor}`}>{title}</h2>
           )}
           <button
             onClick={onClose}
-            className="ml-auto p-2 rounded-full bg-gray-500 hover:bg-gray-600 transition-colors"
+            className={`ml-auto p-2 rounded-full transition-colors`}
             aria-label="Close modal"
           >
             <X size={20} />
@@ -74,7 +94,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) =>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 text-gray-500">
+        <div className={`flex-1 overflow-y-auto p-6 ${variantStyles.textColor}`}>
           {children}
         </div>
       </div>
