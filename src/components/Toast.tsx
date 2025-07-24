@@ -11,7 +11,7 @@ interface ToastProps {
 const Toast: React.FC<ToastProps> = ({ 
   message, 
   type = 'info', 
-  duration = 3000, 
+  duration = 1200, 
   onClose 
 }) => {
   useEffect(() => {
