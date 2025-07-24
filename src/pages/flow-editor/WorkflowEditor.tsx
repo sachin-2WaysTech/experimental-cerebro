@@ -23,7 +23,6 @@ import type { LayoutAlgorithm } from '../../utils/layoutUtils';
 import WorkFlowBottomBar from './WorkFlowBottomBar';
 import Modal from '@/components/Modal';
 import { useToast } from '@/components/Toast';
-import KeyboardShortcuts from '@/components/KeyboardShortcuts';
 
 const edgeTypes: EdgeTypes = {
   animatedEdge: AnimatedConnectionLine,
@@ -553,7 +552,6 @@ const WorkflowEditorInner: React.FC = () => {
         edges={edges}
       />
       <ToastContainer />
-      <KeyboardShortcuts />
     </div>
   );
 };
