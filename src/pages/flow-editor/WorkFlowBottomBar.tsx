@@ -70,14 +70,14 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
                   id: savedCredential.id,
                   name: savedCredential.display_name || savedCredential.name
                 };
-                console.log(`Transformed credential ${key}:`, credentials[key]);
+
               } else {
                 // Fallback if credential not found in saved credentials
                 credentials[key] = {
                   id: credentialId,
                   name: "Unknown Credential"
                 };
-                console.log(`Credential ${key} not found in saved credentials, using fallback:`, credentials[key]);
+
               }
             } else {
               // Include non-credential fields in parameters object
@@ -107,7 +107,7 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
       // Add credentials if they exist
       if (Object.keys(credentials).length > 0) {
         nodeObject.credentials = credentials;
-        console.log(`Node ${nodeData.id} has credentials:`, credentials);
+
       }
 
       // Add parameters if they exist
@@ -183,7 +183,7 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.error("Error testing workflow:", error);
+
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
@@ -219,9 +219,8 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
                 onClick={() => {
                   setTabs("editor");
                 }}
-                className={`rounded-[10px] p-[5px] ${
-                  tabs === "editor" ? "bg-[#434343]" : ""
-                } `}
+                className={`rounded-[10px] p-[5px] ${tabs === "editor" ? "bg-[#434343]" : ""
+                  } `}
               >
                 Editor
               </button>
@@ -229,9 +228,8 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
                 onClick={() => {
                   setTabs("execution");
                 }}
-                className={`rounded-[10px] p-[5px] ${
-                  tabs === "execution" ? "bg-[#434343]" : ""
-                } `}
+                className={`rounded-[10px] p-[5px] ${tabs === "execution" ? "bg-[#434343]" : ""
+                  } `}
               >
                 Executions
               </button>
@@ -265,11 +263,10 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
             <button
               onClick={handleTestWorkflow}
               disabled={isTestingWorkflow}
-              className={`rounded-[10px] py-2 px-3 text-sm font-semibold text-center text-white ${
-                isTestingWorkflow
+              className={`rounded-[10px] py-2 px-3 text-sm font-semibold text-center text-white ${isTestingWorkflow
                   ? "bg-gray-500 cursor-not-allowed"
                   : "bg-[#B72D26] hover:bg-[#A01E18]"
-              }`}
+                }`}
             >
               {isTestingWorkflow ? "Testing..." : "Test workflow"}
             </button>

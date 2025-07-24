@@ -6,6 +6,7 @@ import { useCredentialsStore } from '../stores/nodes_store';
 import type { CreateCredentialConfig, CredentialParameter } from '../stores/nodes_store';
 import { useFieldVisibility } from '../hooks/useFieldVisibility';
 import FieldRenderer from './shared/FieldRenderer';
+import handleAxiosError from "../lib/axiosErrorHandle";
 
 interface CredentialModalProps {
   isOpen: boolean;
@@ -69,22 +70,22 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
             switch (paramDef.type) {
               case 'number':
                 parameters[key] = Number(rawValue);
-                console.log(`Converted ${key} from "${rawValue}" (${typeof rawValue}) to ${parameters[key]} (${typeof parameters[key]})`);
+
                 break;
               case 'boolean':
                 parameters[key] = Boolean(rawValue);
-                console.log(`Converted ${key} from "${rawValue}" (${typeof rawValue}) to ${parameters[key]} (${typeof parameters[key]})`);
+
                 break;
               case 'string':
               default:
                 parameters[key] = String(rawValue);
-                console.log(`Converted ${key} from "${rawValue}" (${typeof rawValue}) to ${parameters[key]} (${typeof parameters[key]})`);
+
                 break;
             }
           } else if (rawValue !== null && rawValue !== '') {
             // Fallback for unknown types
             parameters[key] = rawValue as string | number | boolean;
-            console.log(`Used fallback for ${key}: ${parameters[key]} (${typeof parameters[key]})`);
+
           }
         }
       });
@@ -99,7 +100,7 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
       reset();
       onClose();
     } catch (error) {
-      console.error("Error creating credential:", error);
+      handleAxiosError(error);
     } finally {
       setIsLoading(false);
     }
