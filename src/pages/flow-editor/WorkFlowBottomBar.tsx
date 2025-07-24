@@ -45,7 +45,12 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
       // Debug: Log node data to see what's available
       console.log(`Processing node ${nodeData.id}:`, {
         parameters: nodeData.parameters,
-        credentialDefs: nodeData.nodeType.credentials
+        credentialDefs: nodeData.nodeType.credentials,
+        position: node.position,
+        displayProperties: {
+          "x-position": Math.round(node.position.x),
+          "y-position": Math.round(node.position.y)
+        }
       });
 
       // Extract credentials from parameters
@@ -94,7 +99,10 @@ const WorkFlowBottomBar: FC<WorkFlowBottomBarProps> = ({
         display_name: nodeData.nodeType.display_name,
         description: nodeData.nodeType.description,
         version: 1.0,
-        position: [Math.round(node.position.x), Math.round(node.position.y)],
+        display_properties: {
+          "x-position": Math.round(node.position.x),
+          "y-position": Math.round(node.position.y)
+        },
       };
 
       // Add is_trigger field for trigger nodes
