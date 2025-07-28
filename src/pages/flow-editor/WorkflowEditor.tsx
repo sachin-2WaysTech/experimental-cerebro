@@ -70,12 +70,22 @@ const findNonOverlappingPosition = (
   };
 };
 
-const WorkflowEditorInner: React.FC = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData & Record<string, unknown>>>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+interface WorkflowEditorInnerProps {
+  initialNodes?: Node<NodeData & Record<string, unknown>>[];
+  initialEdges?: Edge[];
+  initialNodeCounter?: number;
+}
+
+const WorkflowEditorInner: React.FC<WorkflowEditorInnerProps> = ({
+  initialNodes = [],
+  initialEdges = [],
+  initialNodeCounter = 1,
+}) => {
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData & Record<string, unknown>>>(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdges);
   const [selectedNode, setSelectedNode] = useState<NodeData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [nodeCounter, setNodeCounter] = useState(1);
+  const [nodeCounter, setNodeCounter] = useState(initialNodeCounter);
 
   // Toast notifications
   const { showToast, ToastContainer } = useToast();
@@ -514,6 +524,18 @@ const WorkflowEditorInner: React.FC = () => {
             onAutoArrange={onAutoArrange}
           />
         </ReactFlow>
+
+        {/* Empty state message */}
+        {nodes.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-center text-gray-400">
+              <div className="text-xl mb-2">No workflow nodes yet</div>
+              <div className="text-sm">
+                Drag nodes from the sidebar or double-click to add nodes to your workflow
+              </div>
+            </div>
+          </div>
+        )}
         {selectedNode && (
           <NodeModal
             node={selectedNode}
@@ -556,10 +578,24 @@ const WorkflowEditorInner: React.FC = () => {
   );
 };
 
-const WorkflowEditor: React.FC = () => {
+interface WorkflowEditorProps {
+  initialNodes?: Node<NodeData & Record<string, unknown>>[];
+  initialEdges?: Edge[];
+  initialNodeCounter?: number;
+}
+
+const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
+  initialNodes,
+  initialEdges,
+  initialNodeCounter,
+}) => {
   return (
     <ReactFlowProvider>
-      <WorkflowEditorInner />
+      <WorkflowEditorInner
+        initialNodes={initialNodes}
+        initialEdges={initialEdges}
+        initialNodeCounter={initialNodeCounter}
+      />
     </ReactFlowProvider>
   );
 };

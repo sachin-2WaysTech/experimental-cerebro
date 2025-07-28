@@ -171,15 +171,15 @@ export const useCredentialsStore = create<CredentialsStore>()(
         },
         createCredential: async (credentialData: CreateCredentialConfig) => {
           try {
-            const fullPayload: CreateCredentialConfig & { version: string; id: string } = {
+            const fullPayload: CreateCredentialConfig & { version: string } = {
               ...credentialData,
               version: "1.0",
-              id: "81069d0e-00f8-43d2-8c9d-db0966c4a4c6",
+              // id:"86a129f7-bee8-4940-ba21-26b50926ba3a",
             };
 
             const newCredential = await createCredential(fullPayload);
             const savedCredential: SavedCredential = {
-              id: newCredential.id || fullPayload.id,
+              id: newCredential.id,
               name: fullPayload.name,
               display_name: fullPayload.display_name,
               node_type: fullPayload.name,

@@ -1,4 +1,4 @@
-import { getAllWorkflow } from "@/service/commonService";
+import { getAllWorkflow, getWorkflowById } from "@/service/commonService";
 import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
 
@@ -29,19 +29,25 @@ interface WorkflowNode {
 }
 
 interface Workflow {
-  active_version_id: number;
+  active_version_id?: number;
   created_at: string;
-  created_by: number;
+  created_by: number | string;
   is_active: boolean;
   name: string;
   tags: WorkflowTag[];
   id: string;
   updated_at: string;
-  version_no: number;
+  version_no?: number;
+  description?: string | null;
+  status?: string;
+  edited_by?: string;
+  published_version_id?: number | null;
+  current_version_id?: number;
+  version_name?: string | null;
   work_flow: {
-    connections: Record<string, WorkflowConnection>;
-    nodes: Record<string, WorkflowNode>;
-    start_node: string;
+    connections?: Record<string, WorkflowConnection>;
+    nodes?: Record<string, WorkflowNode>;
+    start_node?: string;
   };
 }
 
@@ -51,6 +57,7 @@ interface WorkflowStoreState {
   error: string | null;
   getAllWorkflows: () => Promise<Workflow[]>;
   getWorkflowByUid: (uid: string) => Workflow | undefined;
+  getWorkflowByIdFromAPI: (uid: string) => Promise<Workflow | null>;
   addWorkflow: (workflow: Workflow) => void;
   updateWorkflow: (uid: string, updates: Partial<Workflow>) => void;
   deleteWorkflow: (uid: string) => void;
@@ -89,6 +96,22 @@ export const useWorkflowStore = create<WorkflowStoreState>()(
 
         getWorkflowByUid: (id: string) => {
           return get().workflows.find((workflow) => workflow.id === id);
+        },
+
+        getWorkflowByIdFromAPI: async (id: string) => {
+          set({ isLoading: true, error: null });
+          try {
+            const workflow = await getWorkflowById(id);
+            set({ isLoading: false });
+            return workflow;
+          } catch (error: unknown) {
+            const errorMessage =
+              error instanceof Error
+                ? error.message
+                : "Failed to fetch workflow";
+            set({ error: errorMessage, isLoading: false });
+            throw error;
+          }
         },
 
         addWorkflow: (workflow: Workflow) => {

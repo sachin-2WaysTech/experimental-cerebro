@@ -111,6 +111,22 @@ export async function createCredential(
   }
 }
 
+export async function getWorkflowById(workflowId: string): Promise<Workflow | null> {
+  try {
+    const response = await privateClient.get(`/workflows/${workflowId}`);
+    const { data, status } = response;
+
+    if (status) {
+      return data;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching workflow by ID:", error);
+    return null;
+  }
+}
+
 export async function executeWorkflow(
   workflowId: string,
   workflowData: {
