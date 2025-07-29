@@ -1,3 +1,4 @@
+import handleAxiosError from "@/lib/axiosErrorHandle";
 import { getNodeTypes, getCredentials, getSavedCredentials, createCredential } from "@/service/commonService";
 import type { NodeType } from "@/service/nodeService";
 import { create } from "zustand";
@@ -94,7 +95,7 @@ export const useNodesStore = create<NodesStore>()(
             });
             return response;
           } catch (error) {
-            console.error(error)
+            handleAxiosError(error);
             set({ isLoading: false });
             return [];
           }
@@ -147,14 +148,14 @@ export const useCredentialsStore = create<CredentialsStore>()(
 
           try {
             const response = await getCredentials();
-            console.log("Credentials Response:", response);
+
             set({
               credentials: response,
               isLoading: false,
             });
             return response;
           } catch (error) {
-            console.error("Error fetching credentials:", error);
+            handleAxiosError(error);
             set({ isLoading: false });
             return [];
           }
@@ -165,7 +166,7 @@ export const useCredentialsStore = create<CredentialsStore>()(
             set({ savedCredentials: response });
             return response;
           } catch (error) {
-            console.error("Error fetching saved credentials:", error);
+            handleAxiosError(error);
             return get().savedCredentials;
           }
         },
@@ -194,7 +195,7 @@ export const useCredentialsStore = create<CredentialsStore>()(
 
             return savedCredential;
           } catch (error) {
-            console.error("Error creating credential:", error);
+            handleAxiosError(error);
             throw error;
           }
         }

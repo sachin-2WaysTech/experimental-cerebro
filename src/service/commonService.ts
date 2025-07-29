@@ -2,6 +2,7 @@ import { privateClient } from "@/utils/privateClient";
 import type { NodeType } from "./nodeService";
 import type { Workflow, WorkflowResponse } from "@/stores/workflow_store";
 import type { CreateCredentialConfig } from "@/stores/nodes_store";
+import handleAxiosError from "@/lib/axiosErrorHandle";
 
 export async function getNodeTypes(): Promise<NodeType[]> {
   try {
@@ -13,7 +14,7 @@ export async function getNodeTypes(): Promise<NodeType[]> {
       return [];
     }
   } catch (error) {
-    console.error("Error fetching node types:", error);
+    handleAxiosError(error);
     return [];
   }
 }
@@ -34,7 +35,7 @@ export async function getAllWorkflow(): Promise<WorkflowResponse> {
       } as WorkflowResponse; // Default empty response
     }
   } catch (error) {
-    console.error("Error fetching node types:", error);
+    handleAxiosError(error);
     return { workflows: [], total: 0, page: 1, size: 100 } as WorkflowResponse; // Default empty response
   }
 }
@@ -49,7 +50,7 @@ export async function getAddWorkflow(): Promise<Workflow | []> {
       return [];
     }
   } catch (error) {
-    console.error("Error ", error);
+    handleAxiosError(error);
     return [];
   }
 }
@@ -67,7 +68,7 @@ export async function createWorkflow(
       return [];
     }
   } catch (error) {
-    console.error("Error creating workflow:", error);
+    handleAxiosError(error);
     return [];
   }
 }
@@ -83,7 +84,7 @@ export async function getCredentials(): Promise<any[]> {
       return [];
     }
   } catch (error) {
-    console.error("Error fetching credentials:", error);
+    handleAxiosError(error);
     return [];
   }
 }
@@ -92,7 +93,6 @@ export async function createCredential(
   credentialData: CreateCredentialConfig
 ): Promise<any> {
   try {
-    console.log(credentialData, "credential data");
     const response = await privateClient.post("/credentials/", credentialData);
 
     const { data, status } = response;
@@ -106,7 +106,7 @@ export async function createCredential(
       throw new Error("Failed to create credential");
     }
   } catch (error) {
-    console.error("Error creating credential:", error);
+    handleAxiosError(error);
     throw error;
   }
 }
@@ -134,7 +134,7 @@ export async function executeWorkflow(
       throw new Error("Failed to execute workflow");
     }
   } catch (error) {
-    console.error("Error executing workflow:", error);
+    handleAxiosError(error);
     throw error;
   }
 }
@@ -150,7 +150,24 @@ export async function getSavedCredentials(): Promise<any[]> {
       return [];
     }
   } catch (error) {
-    console.error("Error fetching saved credentials:", error);
+    handleAxiosError(error);
+    return [];
+  }
+}
+/// api for get credential id
+
+export async function getCredentialById(credentialId: string): Promise<any> {
+  try {
+    const response = await privateClient.get(`/credentials/${credentialId}`);
+    const { data, status } = response;
+
+    if (status === 200) {
+      return data;
+    } else {
+      throw new Error("Failed to fetch credential");
+    }
+  } catch (error) {
+    handleAxiosError(error);
     return [];
   }
 }

@@ -107,9 +107,6 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
   };
 
 
-
-
-
   const handleClose = () => {
     reset();
     onClose();
@@ -126,11 +123,39 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
       />
     );
   };
+  const getIcon = (iconName: string) => {
+    const iconKey = iconName
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('');
+
+    const IconsMap = Icons as unknown as Record<string, React.ComponentType<{ size?: number; className?: string }>>;
+    return IconsMap[iconKey] || Icons.Circle;
+  };
+
 
   if (!credentialType) return null;
+  const IconComponent = getIcon(credentialType.icon);
+
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={`Create ${credentialType.display_name} Credential`} size="lg" variant='credential'>
+
+    <Modal isOpen={isOpen} onClose={handleClose} size="lg" variant='credential'>
+      <div className="flex items-center gap-4 mb-6">
+        <div
+          className="flex items-center justify-center w-12 h-12 rounded-full text-white"
+          style={{ backgroundColor: credentialType.icon_color }}
+        >
+          <IconComponent size={20} className="text-white" />
+
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold text-black">
+            {credentialType.display_name}
+          </h2>
+          <p className="text-sm text-gray-400">{credentialType.description}</p>
+        </div>
+      </div>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-4">
           {/* Display Name Field */}
@@ -156,7 +181,7 @@ const CredentialModal: React.FC<CredentialModalProps> = ({
           )}
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+        <div className="flex justify-end space-x-3 pt-4 ">
           <button
             type="button"
             onClick={handleClose}

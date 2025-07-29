@@ -5,7 +5,8 @@ import { useCredentialsStore } from "../../stores/nodes_store";
 import CredentialModal from "../../components/CredentialModal";
 import { useFieldVisibility } from "../../hooks/useFieldVisibility";
 import FieldRenderer from "../../components/shared/FieldRenderer";
-
+import { PencilSimple } from "phosphor-react";
+import EditModal from "./EditModal";
 interface NodeParametersFormProps {
   node: NodeData;
   onSave: (parameters: Record<string, unknown>) => void;
@@ -28,8 +29,11 @@ const NodeParametersForm: React.FC<NodeParametersFormProps> = ({
 
   const [showCreateCredentialModal, setShowCreateCredentialModal] = useState(false);
   const [selectedCredentialType, setSelectedCredentialType] = useState<any>(null);
+  const [selectedCredential, setSelectedCredential] = useState<any>(null)
   const credentials = useCredentialsStore((state) => state.credentials);
   const savedCredentials = useCredentialsStore((state) => state.savedCredentials);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedCredentials, setSelectedCredentials] = useState<Record<string, string>>({});
 
   // Watch all form values for conditional display
   const formValues = watch();
@@ -48,50 +52,107 @@ const NodeParametersForm: React.FC<NodeParametersFormProps> = ({
   };
 
   // Handler for credential selection change
-  const handleCredentialSelectChange = (event: React.ChangeEvent<HTMLSelectElement>, credentialName: string) => {
-    if (event.target.value === "create_new") {
-      // Find the full credential definition from the credentials store
-      const fullCredentialType = credentials.find(cred => cred.name === credentialName);
+  const handleCredentialSelectChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+    credentialName: string
+  ) => {
+    const value = event.target.value;
+    console.log("Dropdown selected value:", value);
+
+    if (value === "create_new") {
+      const fullCredentialType = credentials.find(
+        (cred) => cred.name === credentialName
+      );
+      console.log("Opening create modal for type:", fullCredentialType);
       setSelectedCredentialType(fullCredentialType);
       setShowCreateCredentialModal(true);
-      // Reset the select to empty value
-      event.target.value = "";
+      return;
     }
+
+    const fullCred = savedCredentials.find((c) => c.id === value);
+    console.log("Setting selectedCredential:", value);
+    console.log("Resolved full credential:", fullCred);
+
+    setSelectedCredential(value);
+    setSelectedCredentials((prev) => ({
+      ...prev,
+      [credentialName]: value,
+    }));
   };
+
+
 
 
 
   const renderCredentialField = (credentialDef: { name: string; display_name: string; required: boolean }) => {
     // Get saved credentials for this credential type
-    const savedCredentialsForType = getSavedCredentialsByType(credentialDef.name);
+    const savedCredentialsForType = Array.from(
+      new Map(getSavedCredentialsByType(credentialDef.name).map(cred => [cred.id, cred])).values()
+    );
+
 
     const commonProps = {
       ...register(credentialDef.name, { required: credentialDef.required }),
       className:
         "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
     };
-
+    const selectedCredentialObj = savedCredentials.find(
+      (cred) => cred.id === selectedCredential
+    );
     return (
-      <div className="space-y-2">
-        <select
-          {...commonProps}
-          onChange={(e) => handleCredentialSelectChange(e, credentialDef.name)}
-        >
-          <option value="">Select {credentialDef.display_name}</option>
-          {savedCredentialsForType.map((credential) => (
-            <option key={credential.id} value={credential.id}>
-              {credential.display_name}
+      <div className="flex items-center gap-1">
+        <div className="relative w-[90%]">
+          <select
+            {...commonProps}
+            value={selectedCredentials[credentialDef.name] || ""}
+            onChange={(e) => handleCredentialSelectChange(e, credentialDef.name)}
+          >
+
+            <option value="">Select {credentialDef.display_name}</option>
+            {savedCredentialsForType.map((credential) => (
+              <option key={credential.id} value={credential.id}>
+                {credential.display_name}
+              </option>
+            ))}
+            <option value="create_new" className="border-t border-gray-300 font-medium text-blue-600">
+              + Create New API Key
             </option>
-          ))}
-          <option value="create_new" className="border-t border-gray-300 font-medium text-blue-600">
-            + Create New API Key
-          </option>
-        </select>
-        {savedCredentialsForType.length === 0 && (
-          <p className="text-xs text-gray-500">
-            No saved credentials found. Create a new one to get started.
-          </p>
+          </select>
+
+          {savedCredentialsForType.length === 0 && (
+            <p className="text-xs text-gray-500">
+              No saved credentials found. Create a new one to get started.
+            </p>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            console.log("Opening edit modal");
+            console.log("Selected Credential ID:", selectedCredential);
+            const selectedCredentialObj = savedCredentials.find(
+              (cred) => cred.id === selectedCredential
+            );
+            console.log("Resolved Credential Type:", selectedCredentialObj);
+            setIsEditOpen(true);
+          }}
+
+          className="p-1 hover:bg-gray-400 rounded-md text-gray-500"
+        >
+          <PencilSimple size={16} weight="light" />
+        </button>
+
+
+        {selectedCredentialObj && (
+          <EditModal
+            isOpen={isEditOpen}
+            onClose={() => setIsEditOpen(false)}
+            credentialType={selectedCredentialObj}
+            credentialId={selectedCredential}
+          />
         )}
+
       </div>
     );
   };

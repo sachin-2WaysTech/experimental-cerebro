@@ -8,11 +8,11 @@ interface ToastProps {
   onClose: () => void;
 }
 
-const Toast: React.FC<ToastProps> = ({ 
-  message, 
-  type = 'info', 
-  duration = 1000, 
-  onClose 
+const Toast: React.FC<ToastProps> = ({
+  message,
+  type = 'info',
+  duration = 1000,
+  onClose
 }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -45,7 +45,7 @@ const Toast: React.FC<ToastProps> = ({
   };
 
   return (
-    <div className={`fixed top-4 right-4 z-50 flex items-center space-x-2 px-4 py-3 rounded-lg border shadow-lg ${getBackgroundColor()} animate-in slide-in-from-right-full duration-300`}>
+    <div className={`fixed bottom-4 right-4 z-50 flex items-center space-x-2 px-4 py-3 rounded-lg border shadow-lg ${getBackgroundColor()} animate-in slide-in-from-right-full duration-300`}>
       {getIcon()}
       <span className="text-sm font-medium text-gray-800">{message}</span>
       <button
@@ -76,7 +76,7 @@ export const useToast = () => {
   };
 
   const ToastContainer = () => (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
+    <div className="fixed bottom-4 right-4 z-50 space-y-2">
       {toasts.map(toast => (
         <Toast
           key={toast.id}

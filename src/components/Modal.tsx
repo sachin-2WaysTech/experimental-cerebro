@@ -72,29 +72,37 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md', variant = 'defau
       <div
         className={`relative ${variantStyles.textColor} ${sizeClasses[size]} flex flex-col`}
         style={{
-         borderRadius: '20px',
+          borderRadius: '20px',
           border: '1px solid rgba(255, 255, 255, 0.07)',
           background: variantStyles.background,
           boxShadow: '0px 0px 22.7px 0px rgba(0, 0, 0, 0.40)',
           backdropFilter: 'blur(3.5px)'
         }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
-          {title && (
+        {title ? (
+          <div className="flex items-center justify-between p-6 border-b border-white/10">
             <h2 className={`text-xl font-semibold ${variantStyles.textColor}`}>{title}</h2>
-          )}
-          <button
-            onClick={onClose}
-            className={`ml-auto p-2 rounded-full transition-colors`}
-            aria-label="Close modal"
-          >
-            <X size={20} />
-          </button>
-        </div>
+            <button
+              onClick={onClose}
+              className="ml-auto p-2 rounded-full transition-colors"
+              aria-label="Close modal"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        ) : (
+          <div className="flex justify-end p-2">
+            <button
+              onClick={onClose}
+              className="  rounded-full transition-colors"
+              aria-label="Close modal"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        )}
 
-        {/* Content */}
-        <div className={`flex-1 overflow-y-auto p-6 ${variantStyles.textColor}`}>
+        <div className={`flex-1 overflow-y-auto px-4 py-2 ${variantStyles.textColor}`}>
           {children}
         </div>
       </div>
